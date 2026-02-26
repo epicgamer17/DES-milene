@@ -1,0 +1,241 @@
+confExString_TerminatingCondition,,"""(OreExtraction_Level >= parameter_TotalOreToBeExtracted) && (ABS(OreStock_Level - controlVariable_TargetOreStockLevel)<0.001)""",,,,,,
+,,,,,,,,
+,,,,,,,,
+confExString_InitialRateConfigurationNumber,,"""1""",,,,,,
+,,,,,,,,
+,,,,,,,,
+confExString_InitialLevelValue,,,,,,,,
+,OreExtraction_Level,"""0""",Accumulator starts at zero,,,,,
+,OreExtractedFromCurrentParcel_Level,"""0""",Assume a fresh parcel,,,,,
+,OreStock_Level,"""60000""",Equal to controlVariable_TargetOreStockLevel,,,,,
+,Ore1Stock_Level,"""42000""","Equal to portions from GeostatisticalModelParameters,  (1-0.3)*controlVariable_TargetOreStockLevel",,,,,
+,Ore2Stock_Level,"""18000""","Equal to portions from OreData,  0.3*controlVariable_TargetOreStockLevel",,,,,
+,,,,,,,,
+,,,,,,,,
+confExString_InitialTimerValue,,,,,,,,
+,TimeExecutedInCurrentCampaignOrShutdown_Timer,"""0""",,,,,,
+,TimeExecutedInCurrentContingencySegment_Timer,"""0""",,,,,,
+,TimeInModeA_Timer,"""0""",,,,,,
+,TimeInModeAContingency_Timer,"""0""",,,,,,
+,TimeInModeAMineSurging_Timer,"""0""",,,,,,
+,TimeInModeB_Timer,"""0""",,,,,,
+,TimeInModeBContingency_Timer,"""0""",,,,,,
+,TimeInModeBMineSurging_Timer,"""0""",,,,,,
+,TimeInShutdown_Level,"""0""",,,,,,
+,,,,,,,,
+,,,,,,,,
+confExString_InitialDiscretelyDynamicalNumericalVariableValue,,,,,,,,
+,ore mass in parcel,"""40000""",,,,,,
+,% of Ore Type 2,"""30""",,,,,,
+,NextParcelIsNewFacie,"""1""",,,,,,
+,,,,,,,,
+,,,,,,,,
+confExString_InitialCategoricalVariableValue,,,,,,,,
+,,"""""",,,,,,
+,,,,,,,,
+,,,,,,,,
+confExString_LevelRate,,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,OreExtraction,"""parameter_ModeAOre1MillingRate+parameter_ModeAOre2MillingRate""","""parameter_ModeAContingencyOre1MillingRate""","""parameter_ModeAOre1MillingRate*100/(100-PercentageOfOre2InCurrentParcel)""","""parameter_ModeBOre1MillingRate+parameter_ModeBOre2MillingRate""","""parameter_ModeBContingencyOre2MillingRate""","""parameter_ModeBOre2MillingRate*100/PercentageOfOre2InCurrentParcel""","""0"""
+,OreExtractedFromCurrentParcel,"""parameter_ModeAOre1MillingRate+parameter_ModeAOre2MillingRate""","""parameter_ModeAContingencyOre1MillingRate""","""parameter_ModeAOre1MillingRate*100/(100-PercentageOfOre2InCurrentParcel)""","""parameter_ModeBOre1MillingRate+parameter_ModeBOre2MillingRate""","""parameter_ModeBContingencyOre2MillingRate""","""parameter_ModeBOre2MillingRate*100/PercentageOfOre2InCurrentParcel""","""0"""
+,OreStock,"""0""","""0""","""parameter_ModeAOre1MillingRate*100/(100-PercentageOfOre2InCurrentParcel)-parameter_ModeAOre1MillingRate-parameter_ModeAOre2MillingRate""","""0""","""0""","""parameter_ModeBOre2MillingRate*100/PercentageOfOre2InCurrentParcel-parameter_ModeBOre1MillingRate-parameter_ModeBOre2MillingRate""","""0"""
+,Ore1Stock,"""(parameter_ModeAOre1MillingRate+parameter_ModeAOre2MillingRate)*(1-PercentageOfOre2InCurrentParcel/100)-parameter_ModeAOre1MillingRate""","""parameter_ModeAContingencyOre1MillingRate*(1-PercentageOfOre2InCurrentParcel/100)-parameter_ModeAContingencyOre1MillingRate""","""0""","""(parameter_ModeBOre1MillingRate+parameter_ModeBOre2MillingRate)*(100-PercentageOfOre2InCurrentParcel)/100 - parameter_ModeBOre1MillingRate""","""parameter_ModeBContingencyOre2MillingRate*(100-PercentageOfOre2InCurrentParcel)/100""","""parameter_ModeBOre2MillingRate*(100-PercentageOfOre2InCurrentParcel)/(PercentageOfOre2InCurrentParcel)-parameter_ModeBOre1MillingRate""","""0"""
+,Ore2Stock,"""(parameter_ModeAOre1MillingRate+parameter_ModeAOre2MillingRate)*(PercentageOfOre2InCurrentParcel/100)-parameter_ModeAOre2MillingRate""","""parameter_ModeAContingencyOre1MillingRate*(PercentageOfOre2InCurrentParcel/100)""","""parameter_ModeAOre1MillingRate*PercentageOfOre2InCurrentParcel/(100-PercentageOfOre2InCurrentParcel)-parameter_ModeAOre2MillingRate""","""(parameter_ModeBOre1MillingRate+parameter_ModeBOre2MillingRate)*PercentageOfOre2InCurrentParcel/100 - parameter_ModeBOre2MillingRate""","""parameter_ModeBContingencyOre2MillingRate*PercentageOfOre2InCurrentParcel/100 - parameter_ModeBContingencyOre2MillingRate""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+confExString_LowerLevelThreshold,,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,OreExtraction,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,OreExtractedFromCurrentParcel,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,OreStock,"""-999999""","""-999999""","""controlVariable_TargetOreStockLevel""","""-999999""","""-999999""","""controlVariable_TargetOreStockLevel""","""-999999"""
+,Ore1Stock,"""0""","""0""","""-999999""","""0""","""-999999""","""-999999""","""-999999"""
+,Ore2Stock,"""0""","""-999999""","""-999999""","""0""","""0""","""-999999""","""-999999"""
+,,,,,,,,
+,,,,,,,,
+confExString_UpperLevelThreshold,,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,OreExtraction,"""(OreExtraction_Level < parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_OreToBeExtractedDuringWarmingPeriod + (OreExtraction_Level >= parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_TotalOreToBeExtracted""","""(OreExtraction_Level < parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_OreToBeExtractedDuringWarmingPeriod + (OreExtraction_Level >= parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_TotalOreToBeExtracted""","""(OreExtraction_Level < parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_OreToBeExtractedDuringWarmingPeriod + (OreExtraction_Level >= parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_TotalOreToBeExtracted""","""(OreExtraction_Level < parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_OreToBeExtractedDuringWarmingPeriod + (OreExtraction_Level >= parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_TotalOreToBeExtracted""","""(OreExtraction_Level < parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_OreToBeExtractedDuringWarmingPeriod + (OreExtraction_Level >= parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_TotalOreToBeExtracted""","""(OreExtraction_Level < parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_OreToBeExtractedDuringWarmingPeriod + (OreExtraction_Level >= parameter_OreToBeExtractedDuringWarmingPeriod)*parameter_TotalOreToBeExtracted""","""999999"""
+,OreExtractedFromCurrentParcel,"""MassOfCurrentParcel""","""MassOfCurrentParcel""","""MassOfCurrentParcel""","""MassOfCurrentParcel""","""MassOfCurrentParcel""","""MassOfCurrentParcel""","""999999"""
+,OreStock,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,Ore1Stock,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,Ore2Stock,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,,,,,,,,
+,,,,,,,,
+"confExString_LowerLevelResultantRateConfiguration	(1=""ModeA""; 2=""ModeAContingency""; 3=""ModeAMineSurging""; 4=""ModeB""; 5=""ModeBContingency""; 6=""ModeBMineSurging""; 7=""Shutdown"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,OreExtraction,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,OreExtractedFromCurrentParcel,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,OreStock,"""0""","""0""","""1""","""0""","""0""","""4""","""0"""
+,Ore1Stock,"""3""","""3""","""0""","""5""","""0""","""0""","""0"""
+,Ore2Stock,"""2""","""0""","""0""","""6""","""6""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+"confExString_UpperLevelResultantRateConfiguration	(1=""ModeA""; 2=""ModeAContingency""; 3=""ModeAMineSurging""; 4=""ModeB""; 5=""ModeBContingency""; 6=""ModeBMineSurging""; 7=""Shutdown"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,OreExtraction,"""1""","""2""","""3""","""4""","""5""","""6""","""0"""
+,OreExtractedFromCurrentParcel,"""1""","""2""","""3""","""4""","""5""","""6""","""0"""
+,OreStock,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,Ore1Stock,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,Ore2Stock,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+"confExString_LowerLevelAssignmentAddress	(1=""EndOfWarmup""; 2=""BeginNewCampaignOrShutdown""; 3=""BeginContingencySegment""; 4=""LoadGeologicalAttributesForNewFaciesWithSigmaNotZero""; 5=""LoadGeologicalAttributesForNewFaciesWithSigmaZero""; 6=""LoadGeologicalAttributesForExistingFacies"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,OreExtraction,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,OreExtractedFromCurrentParcel,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,OreStock,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,Ore1Stock,"""0""","""0""","""0""","""3""","""0""","""0""","""0"""
+,Ore2Stock,"""3""","""0""","""0""","""0""","""0""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+"confExString_UpperLevelAssignmentAddress	(1=""EndOfWarmup""; 2=""BeginNewCampaignOrShutdown""; 3=""BeginContingencySegment""; 4=""LoadGeologicalAttributesForNewFaciesWithSigmaNotZero""; 5=""LoadGeologicalAttributesForNewFaciesWithSigmaZero""; 6=""LoadGeologicalAttributesForExistingFacies"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,OreExtraction,"""0 + 1*(OreExtraction_Level == parameter_OreToBeExtractedDuringWarmingPeriod)""","""0 + 1*(OreExtraction_Level == parameter_OreToBeExtractedDuringWarmingPeriod)""","""0 + 1*(OreExtraction_Level == parameter_OreToBeExtractedDuringWarmingPeriod)""","""0 + 1*(OreExtraction_Level == parameter_OreToBeExtractedDuringWarmingPeriod)""","""0 + 1*(OreExtraction_Level == parameter_OreToBeExtractedDuringWarmingPeriod)""","""0 + 1*(OreExtraction_Level == parameter_OreToBeExtractedDuringWarmingPeriod)""","""0"""
+,OreExtractedFromCurrentParcel,"""(drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)<>0)*4 + (drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)==0)*5 + (drs_DiscretelyDynamicalNumericalVariable(3)==0)*6""","""(drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)<>0)*4 + (drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)==0)*5 + (drs_DiscretelyDynamicalNumericalVariable(3)==0)*6""","""(drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)<>0)*4 + (drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)==0)*5 + (drs_DiscretelyDynamicalNumericalVariable(3)==0)*6""","""(drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)<>0)*4 + (drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)==0)*5 + (drs_DiscretelyDynamicalNumericalVariable(3)==0)*6""","""(drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)<>0)*4 + (drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)==0)*5 + (drs_DiscretelyDynamicalNumericalVariable(3)==0)*6""","""(drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)<>0)*4 + (drs_DiscretelyDynamicalNumericalVariable(3)==1)*(parameterVector_GeostatisticalModelParameters(5)==0)*5 + (drs_DiscretelyDynamicalNumericalVariable(3)==0)*6""","""0"""
+,OreStock,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,Ore1Stock,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,Ore2Stock,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+confExString_TimerRate,,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,TimeExecutedInCurrentCampaignOrShutdown,"""1""","""1""","""1""","""1""","""1""","""1""","""1"""
+,TimeExecutedInCurrentContingencySegment,"""0""","""1""","""0""","""0""","""1""","""0""","""0"""
+,TimeInModeA,"""1""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAContingency,"""0""","""1""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAMineSurging,"""0""","""0""","""1""","""0""","""0""","""0""","""0"""
+,TimeInModeB,"""0""","""0""","""0""","""1""","""0""","""0""","""0"""
+,TimeInModeBContingency,"""0""","""0""","""0""","""0""","""1""","""0""","""0"""
+,TimeInModeBMineSurging,"""0""","""0""","""0""","""0""","""0""","""1""","""0"""
+,TimeInShutdown,"""0""","""0""","""0""","""0""","""0""","""0""","""1"""
+,,,,,,,,
+,,,,,,,,
+confExString_LowerTimerThreshold,,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,TimeExecutedInCurrentCampaignOrShutdown,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeExecutedInCurrentContingencySegment,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeInModeA,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeInModeAContingency,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeInModeAMineSurging,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeInModeB,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeInModeBContingency,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeInModeBMineSurging,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,TimeInShutdown,"""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999""","""-999999"""
+,,,,,,,,
+,,,,,,,,
+confExString_UpperTimerThreshold,,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,TimeExecutedInCurrentCampaignOrShutdown,"""parameter_DurationOfProductionCampaigns""","""parameter_DurationOfProductionCampaigns""","""parameter_DurationOfProductionCampaigns""","""parameter_DurationOfProductionCampaigns""","""parameter_DurationOfProductionCampaigns""","""parameter_DurationOfProductionCampaigns""","""parameter_DurationOfShutdowns"""
+,TimeExecutedInCurrentContingencySegment,"""999999""","""controlVariable_DurationOfContingencySegments""","""999999""","""999999""","""controlVariable_DurationOfContingencySegments""","""999999""","""999999"""
+,TimeInModeA,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,TimeInModeAContingency,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,TimeInModeAMineSurging,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,TimeInModeB,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,TimeInModeBContingency,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,TimeInModeBMineSurging,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,TimeInShutdown,"""999999""","""999999""","""999999""","""999999""","""999999""","""999999""","""999999"""
+,,,,,,,,
+,,,,,,,,
+"confExString_LowerTimerResultantRateConfiguration	(1=""ModeA""; 2=""ModeAContingency""; 3=""ModeAMineSurging""; 4=""ModeB""; 5=""ModeBContingency""; 6=""ModeBMineSurging""; 7=""Shutdown"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,TimeExecutedInCurrentCampaignOrShutdown,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeExecutedInCurrentContingencySegment,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeA,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeB,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInShutdown,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+"confExString_UpperTimerResultantRateConfiguration	(1=""ModeA""; 2=""ModeAContingency""; 3=""ModeAMineSurging""; 4=""ModeB""; 5=""ModeBContingency""; 6=""ModeBMineSurging""; 7=""Shutdown"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,TimeExecutedInCurrentCampaignOrShutdown,"""7""","""7""","""7""","""7""","""7""","""7""","""(Ore2Stock_Level>controlVariable_CriticalOre2Level)*(OreStock_Level<=controlVariable_TargetOreStockLevel)*1+(Ore2Stock_Level>controlVariable_CriticalOre2Level)*(OreStock_Level>controlVariable_TargetOreStockLevel)*3+(Ore2Stock_Level<=controlVariable_CriticalOre2Level)*(OreStock_Level<=controlVariable_TargetOreStockLevel)*4+(Ore2Stock_Level<=controlVariable_CriticalOre2Level)*(OreStock_Level>controlVariable_TargetOreStockLevel)*6"""
+,TimeExecutedInCurrentContingencySegment,"""0""","""1""","""0""","""0""","""4""","""0""","""0"""
+,TimeInModeA,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeB,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInShutdown,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+"confExString_LowerTimerAssignmentAddress	(1=""EndOfWarmup""; 2=""BeginNewCampaignOrShutdown""; 3=""BeginContingencySegment""; 4=""LoadGeologicalAttributesForNewFaciesWithSigmaNotZero""; 5=""LoadGeologicalAttributesForNewFaciesWithSigmaZero""; 6=""LoadGeologicalAttributesForExistingFacies"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,TimeExecutedInCurrentCampaignOrShutdown,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeExecutedInCurrentContingencySegment,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeA,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeB,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInShutdown,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+"confExString_UpperTimerAssignmentAddress	(1=""EndOfWarmup""; 2=""BeginNewCampaignOrShutdown""; 3=""BeginContingencySegment""; 4=""LoadGeologicalAttributesForNewFaciesWithSigmaNotZero""; 5=""LoadGeologicalAttributesForNewFaciesWithSigmaZero""; 6=""LoadGeologicalAttributesForExistingFacies"")",,,,,,,,
+,,ModeA,ModeAContigency,ModeAMineSurging,ModeB,ModeBContigency,ModeBMineSurging,Shutdown
+,TimeExecutedInCurrentCampaignOrShutdown,"""2""","""2""","""2""","""2""","""2""","""2""","""2"""
+,TimeExecutedInCurrentContingencySegment,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeA,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeAMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeB,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBContingency,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInModeBMineSurging,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,TimeInShutdown,"""0""","""0""","""0""","""0""","""0""","""0""","""0"""
+,,,,,,,,
+,,,,,,,,
+"confExString_AssignmentSequence  (Prefix ""L"" = Level,  ""T"" = Timer, ""N"" = Discretely Dynamical Numerical, ""C"" = Categorical, ""E"" = Run External Code)",,,,,,,,
+,,First Assignment in Sequence,Second Assignment in Sequence,Third Assignment in Sequence,Fourth Assignment in Sequence,Fifth Assignment in Sequence,Sixth Assignment in Sequence,Seventh Assignment in Sequence
+,Assignment Sequence 1,"""T003:0""","""T004:0""","""T005:0""","""T006:0""","""T007:0""","""T008:0""","""T009:0"""
+,Assignment Sequence 2,"""T001:0""","""""","""""","""""","""""","""""",""""""
+,Assignment Sequence 3,"""T002:0""","""""","""""","""""","""""","""""",""""""
+,Assignment Sequence 4,"""L002:0""","""N001:UNIF(parameterVector_GeostatisticalModelParameters(1),parameterVector_GeostatisticalModelParameters(2))""","""N002:MX(NORM(parameterVector_GeostatisticalModelParameters(4),parameterVector_GeostatisticalModelParameters(5)),0)""","""N003:(UNIF(0,1)<= parameterVector_GeostatisticalModelParameters(3))""","""""","""""",""""""
+,Assignment Sequence 5,"""L002:0""","""N001:UNIF(parameterVector_GeostatisticalModelParameters(1),parameterVector_GeostatisticalModelParameters(2))""","""N002:parameterVector_GeostatisticalModelParameters(4)""","""N003:(UNIF(0,1)<= parameterVector_GeostatisticalModelParameters(3))""","""""","""""",""""""
+,Assignment Sequence 6,"""L002:0""","""N001:UNIF(parameterVector_GeostatisticalModelParameters(1),parameterVector_GeostatisticalModelParameters(2))""","""N002:MX(PercentageOfOre2InCurrentParcel + parameterVector_GeostatisticalModelParameters(6)*UNIF(-1,1),0)""","""N003:(UNIF(0,1)<= parameterVector_GeostatisticalModelParameters(3))""","""""","""""",""""""
+,,,,,,,,
+,,,,,,,,
+,Documentation of Assignment Sequence,,,,,,,
+,,,,,,,,
+,Assignment Sequence 1,(End of Warmup; reset times in each mode),,,,,,
+,(TimeInModeA_Timer),"""T003:0""",,,,,,
+,(TimeInModeAContingency_Timer),"""T004:0""",,,,,,
+,(TimeInModeAMineSurging_Timer),"""T005:0""",,,,,,
+,(TimeInModeB_Timer),"""T006:0""",,,,,,
+,(TimeInModeBContingency_Timer),"""T007:0""",,,,,,
+,(TimeInModeBMineSurging_Timer),"""T008:0""",,,,,,
+,(TimeInShutdown_Level),"""T009:0""",,,,,,
+,,,,,,,,
+,,,,,,,,
+,Assignment Sequence 2,(Beginning of new campaign or shutdown;  set TimeExecutedInCurrentCampaignOrShutdown_Timer to zero),,,,,,
+,(TimeExecutedInCurrentCampaignOrShutdown_Timer),"""T001:0""",,,,,,
+,,,,,,,,
+,,,,,,,,
+,Assignment Sequence 3,(Beginning of contingency segment ; set TimeExecutedInCurrentContingencySegment_Timer to zero),,,,,,
+,(TimeExecutedInCurrentContingencySegment_Timer),"""T002:0""",,,,,,
+,,,,,,,,
+,,,,,,,,
+,Assignment Sequence 4,(Update Geological Attributes considering for the new facies for sigma <> 0),,,,,,
+,(OreExtractedFromCurrentParcel_Level),"""L002:0""",,,,,,
+,(MassOfCurrentParcel),"""N001:UNIF(parameterVector_GeostatisticalModelParameters(1),parameterVector_GeostatisticalModelParameters(2))""",,,,,,
+,(PercentageOfOre2InCurrentParcel),"""N002:MX(NORM(parameterVector_GeostatisticalModelParameters(4),parameterVector_GeostatisticalModelParameters(5)),0)""",,,,,,
+,(NextParcelIsNewFacies),"""N003:(UNIF(0,1)<= parameterVector_GeostatisticalModelParameters(3))""",,,,,,
+,,,,,,,,
+,,,,,,,,
+,Assignment Sequence 5,(Update Geological Attributes considering for the new facies for sigma = 0),,,,,,
+,(OreExtractedFromCurrentParcel_Level),"""L002:0""",,,,,,
+,(MassOfCurrentParcel),"""N001:UNIF(parameterVector_GeostatisticalModelParameters(1),parameterVector_GeostatisticalModelParameters(2))""",,,,,,
+,(PercentageOfOre2InCurrentParcel),"""N002:parameterVector_GeostatisticalModelParameters(4)""",,,,,,
+,(NextParcelIsNewFacies),"""N003:(UNIF(0,1)<= parameterVector_GeostatisticalModelParameters(3))""",,,,,,
+,,,,,,,,
+,,,,,,,,
+,Assignment Sequence 6,(Update Geological Attributes considering for existing facies),,,,,,
+,(OreExtractedFromCurrentParcel_Level),"""L002:0""",,,,,,
+,(MassOfCurrentParcel),"""N001:UNIF(parameterVector_GeostatisticalModelParameters(1),parameterVector_GeostatisticalModelParameters(2))""",,,,,,
+,(PercentageOfOre2InCurrentParcel),"""N002:MX(PercentageOfOre2InCurrentParcel + parameterVector_GeostatisticalModelParameters(6)*UNIF(-1,1),0)""",,,,,,
+,(NextParcelIsNewFacies),"""N003:(UNIF(0,1)<= parameterVector_GeostatisticalModelParameters(3))""",,,,,,
+,,,,,,,,
+,,,,,,,,
