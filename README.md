@@ -284,5 +284,5 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_assignments.py`: Verifies the parsing and application of discrete instantaneous changes (Levels, Timers, Numerical, Categorical, and External code).
 - `tests/test_drs_parameters.py`: Verifies that the DRSModel initializes with the correct hardcoded domain constants and mining parameters.
 - `tests/test_drs_logging.py`: Verifies the data logging mechanism (history tracking) during simulation advancement.
-- `tests/test_statistics.py`: Verifies the calculation of final simulation statistics, including portions of time and throughput.
-- `tests/test_drs_plotting.py`: Verifies the implementation of graphical outputs by checking history data processing and plot configuration.
+- `tests/test_drs_stats.py`: Verifies the calculation of final simulation statistics, including portions of time and throughput, with specific checks for normal operations and zero-time stability.
+- `tests/test_drs_history.py`: Verifies the history logging mechanism during simulation advancement, ensuring time and rate configurations are correctly captured.

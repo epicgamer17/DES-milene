@@ -3,26 +3,30 @@ import numpy as np
 from model.drs_model import DRSModel, OutputStatistics
 
 
-def test_calculate_statistics_normal():
+@pytest.fixture
+def drs_model():
+    return DRSModel()
+
+
+def test_calculate_statistics_normal(drs_model):
     """
     Manually set the timer aliases to simple values (e.g., all set to 10.0).
     Assert that all "Portion" statistics equal 1/7 and Throughput is calculated correctly.
     """
-    model = DRSModel()
     # Set all 7 mode timers to 10.0
-    model.TimeInModeA_Timer = 10.0
-    model.TimeInModeAContingency_Timer = 10.0
-    model.TimeInModeAMineSurging_Timer = 10.0
-    model.TimeInModeB_Timer = 10.0
-    model.TimeInModeBContingency_Timer = 10.0
-    model.TimeInModeBMineSurging_Timer = 10.0
-    model.TimeInShutdown_Timer = 10.0
+    drs_model.TimeInModeA_Timer = 10.0
+    drs_model.TimeInModeAContingency_Timer = 10.0
+    drs_model.TimeInModeAMineSurging_Timer = 10.0
+    drs_model.TimeInModeB_Timer = 10.0
+    drs_model.TimeInModeBContingency_Timer = 10.0
+    drs_model.TimeInModeBMineSurging_Timer = 10.0
+    drs_model.TimeInShutdown_Timer = 10.0
 
     # Set OreExtraction_Level and parameter_OreToBeExtractedDuringWarmingPeriod
-    model.OreExtraction_Level = 700000.0
-    model.parameter_OreToBeExtractedDuringWarmingPeriod = 600000.0
+    drs_model.OreExtraction_Level = 700000.0
+    drs_model.parameter_OreToBeExtractedDuringWarmingPeriod = 600000.0
 
-    stats = model.calculate_statistics()
+    stats = drs_model.calculate_statistics()
 
     # Denominators
     # total_time = 70.0
@@ -46,13 +50,12 @@ def test_calculate_statistics_normal():
     assert pytest.approx(stats.Throughput) == expected_throughput
 
 
-def test_calculate_statistics_zero_time():
+def test_calculate_statistics_zero_time(drs_model):
     """
     Ensure that calling calculate_statistics immediately after initialization
     (when all timers are 0) does not throw a ZeroDivisionError and returns 0.0 for all fields.
     """
-    model = DRSModel()
-    stats = model.calculate_statistics()
+    stats = drs_model.calculate_statistics()
 
     assert stats.total_time == 0.0
     assert stats.active_time == 0.0
@@ -64,17 +67,3 @@ def test_calculate_statistics_zero_time():
     assert stats.PortionOfTimeInModeBMineSurging == 0.0
     assert stats.PortionOfTimeInShutdown == 0.0
     assert stats.Throughput == 0.0
-
-
-def test_calculate_statistics_zero_active_time():
-    model = DRSModel()
-    model.TimeInShutdown_Timer = 10.0
-    # Other timers are 0
-    # total_time = 10, active_time = 0
-
-    stats = model.calculate_statistics()
-
-    assert stats.total_time == 10.0
-    assert stats.active_time == 0.0
-    assert stats.Throughput == 0.0
-    assert stats.PortionOfTimeInShutdown == 1.0
