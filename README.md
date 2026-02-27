@@ -73,6 +73,28 @@ result = model.evaluate_expression("Eval(MX(drs_Level(1), drs_Timer(5) * 6))")
 # Evaluates MX(50.0, 10.0 * 6) -> 60.0
 ```
 
+## Event Prediction (Characterizing Thresholds)
+
+The core of the Discrete Rate Simulation is the ability to predict when the next state change will occur. The `characterize_thresholds()` method calculates the time until the next discrete event (e.g., a level hitting its capacity or a timer reaching its limit).
+
+### How it Works
+1. **Initializes Duration**: Starts with a large default value (`99999.0`).
+2. **Evaluates Rates**: For every Level and Timer, it evaluates their current rate based on the active `drs_RateConfigurationNumber`.
+3. **Calculates Time-to-Cross**: 
+   - If `rate > 0`, it calculates the time to hit the `UpperThreshold`.
+   - If `rate < 0`, it calculates the time to hit the `LowerThreshold`.
+4. **Finds Minimum**: The absolute minimum time among all valid trajectories determines the next event.
+5. **Updates Tracking Variables**:
+   - `drs_DurationUntilThresholdCrossing`: The time until the next event.
+   - `drs_ThresholdCrossingLevelOrTimerNumber`: The index of the variable that will cross.
+   - `drs_ThresholdIsCrossedByTimer`: Flag (0 for level, 1 for timer).
+   - `drs_DirectionOfThresholdCrossing`: Direction of change (-1 or 1).
+
+```python
+model.characterize_thresholds()
+print(f"Next event in {model.drs_DurationUntilThresholdCrossing} days")
+```
+
 ## Data Formatting Guide
 
 Whether loading from JSON or Excel, the data must follow these structures:
@@ -129,3 +151,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_config.py`: Validates the `load_configuration` method and its shape validation logic.
 - `tests/test_drs_expressions.py`: Tests the Arena-to-Python expression translation and safe evaluation engine.
 - `tests/test_drs_model.py`: Comprehensive suite verifying matrix initialization, configuration loading, and robust expression evaluation (math, Arena functions, and state variables).
+- `tests/test_characterize_thresholds.py`: Verifies the logic for predicting next event times based on level and timer threshold crossings.

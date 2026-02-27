@@ -454,3 +454,69 @@ class DRSModel:
                 self.confExString_InitialCategoricalVariableValue[i]
             )
             self.drs_CategoricalVariable[i] = str(val)
+
+    def characterize_thresholds(self):
+        """
+        Calculates the time until the next discrete event by evaluating all levels and timers
+        against their respective thresholds based on current rates.
+        """
+        self.drs_DurationUntilThresholdCrossing = 99999.0
+        rate_config = self.drs_RateConfigurationNumber
+
+        # Step 1: Calculate Minimum Duration for Levels
+        for i in range(self.dim_NumberOfLevels):
+            rate_expr = self.confExString_LevelRate[i][rate_config]
+            rate = self.evaluate_expression(rate_expr)
+
+            time_to_cross = 99999.0
+            direction = 0
+
+            if rate < 0:
+                lower_threshold_expr = self.confExString_LowerLevelThreshold[i][
+                    rate_config
+                ]
+                lower_threshold = self.evaluate_expression(lower_threshold_expr)
+                time_to_cross = (lower_threshold - self.drs_Level[i]) / rate
+                direction = -1
+            elif rate > 0:
+                upper_threshold_expr = self.confExString_UpperLevelThreshold[i][
+                    rate_config
+                ]
+                upper_threshold = self.evaluate_expression(upper_threshold_expr)
+                time_to_cross = (upper_threshold - self.drs_Level[i]) / rate
+                direction = 1
+
+            if time_to_cross < self.drs_DurationUntilThresholdCrossing:
+                self.drs_DurationUntilThresholdCrossing = time_to_cross
+                self.drs_ThresholdCrossingLevelOrTimerNumber = i
+                self.drs_ThresholdIsCrossedByTimer = 0
+                self.drs_DirectionOfThresholdCrossing = direction
+
+        # Step 2: Repeat for Timers
+        for i in range(self.dim_NumberOfTimers):
+            rate_expr = self.confExString_TimerRate[i][rate_config]
+            rate = self.evaluate_expression(rate_expr)
+
+            time_to_cross = 99999.0
+            direction = 0
+
+            if rate < 0:
+                lower_threshold_expr = self.confExString_LowerTimerThreshold[i][
+                    rate_config
+                ]
+                lower_threshold = self.evaluate_expression(lower_threshold_expr)
+                time_to_cross = (lower_threshold - self.drs_Timer[i]) / rate
+                direction = -1
+            elif rate > 0:
+                upper_threshold_expr = self.confExString_UpperTimerThreshold[i][
+                    rate_config
+                ]
+                upper_threshold = self.evaluate_expression(upper_threshold_expr)
+                time_to_cross = (upper_threshold - self.drs_Timer[i]) / rate
+                direction = 1
+
+            if time_to_cross < self.drs_DurationUntilThresholdCrossing:
+                self.drs_DurationUntilThresholdCrossing = time_to_cross
+                self.drs_ThresholdCrossingLevelOrTimerNumber = i
+                self.drs_ThresholdIsCrossedByTimer = 1
+                self.drs_DirectionOfThresholdCrossing = direction
