@@ -162,6 +162,28 @@ To facilitate post-simulation analysis and plotting, the `DRSModel` automaticall
 # history_time: [0.0, 5.0, 5.0, 12.0, ...]
 # history_ore_levels: [(1000, 500, 500), (1200, 600, 600), (1500, 600, 600), ...]
 ```
+
+## Output Statistics
+
+Once the simulation run loop terminates, the `calculate_statistics()` method processes the terminal simulation data to calculate exact ratios and throughput values.
+
+### Metrics Calculated
+- **Total Time**: Sum of all Mode-related timers and Shutdown timer.
+- **Active Time**: Total time minus Shutdown time.
+- **PortionOfTime Metrics**: The ratio of time spent in each mode (Mode A, Mode A Contingency, Mode A Mine Surging, Mode B, Mode B Contingency, Mode B Mine Surging, Shutdown) relative to the total simulation time.
+- **Throughput**: Calculated as `(Total Ore Extracted - Ore Extracted in Warming Period) / Active Time`.
+
+### Safeguards
+- If `total_time` is zero, all portions and throughput are set to `0.0`.
+- If `active_time` is zero, `Throughput` is set to `0.0`.
+
+### Example
+```python
+model.run()
+stats = model.calculate_statistics()
+print(f"Total Throughput: {stats.Throughput:.2f} tons/day")
+print(f"Portion of Time in Shutdown: {stats.PortionOfTimeInShutdown * 100:.1f}%")
+```
  
 ## Domain Constants and Control Variables
 
@@ -246,3 +268,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_assignments.py`: Verifies the parsing and application of discrete instantaneous changes (Levels, Timers, Numerical, Categorical, and External code).
 - `tests/test_drs_parameters.py`: Verifies that the DRSModel initializes with the correct hardcoded domain constants and mining parameters.
 - `tests/test_drs_logging.py`: Verifies the data logging mechanism (history tracking) during simulation advancement.
+- `tests/test_statistics.py`: Verifies the calculation of final simulation statistics, including portions of time and throughput.

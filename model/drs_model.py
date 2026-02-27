@@ -1,5 +1,20 @@
 import numpy as np
 import re
+from dataclasses import dataclass
+
+
+@dataclass
+class OutputStatistics:
+    total_time: float
+    active_time: float
+    PortionOfTimeInModeA: float
+    PortionOfTimeInModeAContingency: float
+    PortionOfTimeInModeAMineSurging: float
+    PortionOfTimeInModeB: float
+    PortionOfTimeInModeBContingency: float
+    PortionOfTimeInModeBMineSurging: float
+    PortionOfTimeInShutdown: float
+    Throughput: float
 
 
 class DRSModel:
@@ -747,3 +762,69 @@ class DRSModel:
             self.update_rate_configuration()
 
             iterations += 1
+
+    def calculate_statistics(self) -> OutputStatistics:
+        """
+        Calculates and returns the final simulation report statistics.
+        Calculates exact ratios and throughput based on terminal state.
+        """
+        # Calculate denominators
+        total_time = (
+            self.TimeInModeA_Timer
+            + self.TimeInModeAContingency_Timer
+            + self.TimeInModeAMineSurging_Timer
+            + self.TimeInModeB_Timer
+            + self.TimeInModeBContingency_Timer
+            + self.TimeInModeBMineSurging_Timer
+            + self.TimeInShutdown_Timer
+        )
+
+        active_time = total_time - self.TimeInShutdown_Timer
+
+        # Safeguard logic
+        if total_time == 0:
+            return OutputStatistics(
+                total_time=0.0,
+                active_time=0.0,
+                PortionOfTimeInModeA=0.0,
+                PortionOfTimeInModeAContingency=0.0,
+                PortionOfTimeInModeAMineSurging=0.0,
+                PortionOfTimeInModeB=0.0,
+                PortionOfTimeInModeBContingency=0.0,
+                PortionOfTimeInModeBMineSurging=0.0,
+                PortionOfTimeInShutdown=0.0,
+                Throughput=0.0,
+            )
+
+        # Calculate Portions
+        portions = {
+            "pA": self.TimeInModeA_Timer / total_time,
+            "pAC": self.TimeInModeAContingency_Timer / total_time,
+            "pAMS": self.TimeInModeAMineSurging_Timer / total_time,
+            "pB": self.TimeInModeB_Timer / total_time,
+            "pBC": self.TimeInModeBContingency_Timer / total_time,
+            "pBMS": self.TimeInModeBMineSurging_Timer / total_time,
+            "pS": self.TimeInShutdown_Timer / total_time,
+        }
+
+        # Calculate Throughput
+        if active_time == 0:
+            throughput = 0.0
+        else:
+            throughput = (
+                self.OreExtraction_Level
+                - self.parameter_OreToBeExtractedDuringWarmingPeriod
+            ) / active_time
+
+        return OutputStatistics(
+            total_time=total_time,
+            active_time=active_time,
+            PortionOfTimeInModeA=portions["pA"],
+            PortionOfTimeInModeAContingency=portions["pAC"],
+            PortionOfTimeInModeAMineSurging=portions["pAMS"],
+            PortionOfTimeInModeB=portions["pB"],
+            PortionOfTimeInModeBContingency=portions["pBC"],
+            PortionOfTimeInModeBMineSurging=portions["pBMS"],
+            PortionOfTimeInShutdown=portions["pS"],
+            Throughput=throughput,
+        )
