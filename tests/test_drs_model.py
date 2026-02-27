@@ -91,3 +91,24 @@ def test_evaluate_state_variables(model):
     """Verify translation of 1-based Arena state variables to 0-based indexing."""
     model.drs_Level[0] = 50.0
     assert model.evaluate_expression("drs_Level(1) * 2") == 100.0
+
+
+def test_initialize_simulation(model):
+    """Verify that initialize_simulation evaluates initial configuration strings."""
+    model.confExString_InitialRateConfigurationNumber = "1 + 1"
+    model.confExString_InitialLevelValue[0] = "50 + 50"
+    model.confExString_InitialTimerValue[0] = "10 * 2"
+    model.confExString_InitialDiscretelyDynamicalNumericalVariableValue[0] = "100 / 2"
+    model.confExString_InitialCategoricalVariableValue[0] = (
+        "5"  # Evaluates to 5.0, then str()
+    )
+
+    model.initialize_simulation()
+
+    assert model.TNOW == 0.0
+    assert model.drs_TimeOfPreviousDRSUpdate == 0.0
+    assert model.drs_RateConfigurationNumber == 2
+    assert model.drs_Level[0] == 100.0
+    assert model.drs_Timer[0] == 20.0
+    assert model.drs_DiscretelyDynamicalNumericalVariable[0] == 50.0
+    assert model.drs_CategoricalVariable[0] == "5.0"

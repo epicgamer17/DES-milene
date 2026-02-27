@@ -42,6 +42,9 @@ class DRSModel:
         )
         self.dim_MaxLengthOfAssignmentSequence = dim_MaxLengthOfAssignmentSequence
 
+        # Simulation clock
+        self.TNOW = 0.0
+
         # State tracking vectors
         self.drs_Level = np.zeros(self.dim_NumberOfLevels, dtype=np.float64)
         self.drs_Timer = np.zeros(self.dim_NumberOfTimers, dtype=np.float64)
@@ -404,3 +407,50 @@ class DRSModel:
         except Exception as e:
             # In a real scenario, we might want more specific error handling or logging
             raise ValueError(f"Error evaluating expression '{expression_string}': {e}")
+
+    def initialize_simulation(self):
+        """
+        Sets the simulation to time zero and evaluates all initial starting strings.
+        Bootstraps the DRSModel state before the event loop begins.
+        """
+        self.TNOW = 0.0
+        self.drs_TimeOfPreviousDRSUpdate = self.TNOW
+
+        # Evaluate and assign the starting rate configuration
+        self.drs_RateConfigurationNumber = int(
+            self.evaluate_expression(self.confExString_InitialRateConfigurationNumber)
+        )
+
+        # Loop through levels and populate drs_Level
+        for i in range(self.dim_NumberOfLevels):
+            self.drs_Level[i] = self.evaluate_expression(
+                self.confExString_InitialLevelValue[i]
+            )
+
+        # Loop through timers and populate drs_Timer
+        for i in range(self.dim_NumberOfTimers):
+            self.drs_Timer[i] = self.evaluate_expression(
+                self.confExString_InitialTimerValue[i]
+            )
+
+        # Loop through discrete numerical variables
+        for i in range(self.dim_NumberOfDiscretelyDynamicalNumericalVariables):
+            self.drs_DiscretelyDynamicalNumericalVariable[i] = self.evaluate_expression(
+                self.confExString_InitialDiscretelyDynamicalNumericalVariableValue[i]
+            )
+
+        # Loop through categorical variables
+        # Note: evaluate_expression currently returns float, but categorical might need strings.
+        # For now, we follow the instruction to repeat the evaluation pattern.
+        for i in range(self.dim_NumberOfCategoricalVariables):
+            # evaluate_expression returns float, but CategoricalVariable is a list of strings
+            # We'll need to decide if we want a separate evaluate_string_expression or just str() the result.
+            # Given the instruction "Repeat this loop evaluation for... drs_CategoricalVariable",
+            # and that categorical values are strings, we might need to handle this.
+            # However, the prompt says "Repeat this loop evaluation ... using their respective Initial... string arrays".
+            # If evaluate_expression is strictly numeric, we might have an issue here.
+            # Let's check evaluate_expression again. It returns float(result).
+            val = self.evaluate_expression(
+                self.confExString_InitialCategoricalVariableValue[i]
+            )
+            self.drs_CategoricalVariable[i] = str(val)

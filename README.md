@@ -11,6 +11,7 @@ The simulation is built around the `DRSModel`, which manages the state of the sy
 - **Discrete Variables (`drs_DiscretelyDynamicalNumericalVariable`)**: Numerical values that change discretely at event points (e.g., Parcel mass, Facies flags).
 - **Categorical Variables (`drs_CategoricalVariable`)**: Discrete labels or status strings.
 - **Configuration Expressions (`confExString_*`)**: Dynamic formulas (as strings) that dictate rates, thresholds, and initial values based on the current "Rate Configuration".
+- **Simulation Clock (`TNOW`)**: Current simulation time in days (defaults to 0.0).
 
 ## Model Configuration & Inputs
 
@@ -40,6 +41,18 @@ config_data = {
     "confExString_TerminatingCondition": "time > 3600"
 }
 model.load_configuration(config_data)
+```
+
+### Simulation Initialization
+Before the event loop begins, the model should be bootstrapped using `initialize_simulation()`. This method:
+1. Resets `TNOW` to 0.0.
+2. Sets `drs_TimeOfPreviousDRSUpdate` to `TNOW`.
+3. Evaluates the initial configuration strings to set the starting levels, timers, discrete variables, and categorical variables.
+4. Identifies the initial rate configuration number.
+
+```python
+model.initialize_simulation()
+print(f"Simulation started at TNOW: {model.TNOW}")
 ```
  
 ## Expression Evaluation Engine
