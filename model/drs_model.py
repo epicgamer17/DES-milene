@@ -56,3 +56,156 @@ class DRSModel:
         self.drs_ThresholdCrossingLevelOrTimerNumber = 0
         self.drs_ThresholdIsCrossedByTimer = 0
         self.drs_DirectionOfThresholdCrossing = 0
+
+    @property
+    def OreExtraction_Level(self) -> float:
+        """Alias for drs_Level[0]"""
+        return self.drs_Level[0]
+
+    @OreExtraction_Level.setter
+    def OreExtraction_Level(self, value: float):
+        self.drs_Level[0] = value
+
+    @property
+    def OreExtractedFromCurrentParcel_Level(self) -> float:
+        """Alias for drs_Level[1]"""
+        return self.drs_Level[1]
+
+    @OreExtractedFromCurrentParcel_Level.setter
+    def OreExtractedFromCurrentParcel_Level(self, value: float):
+        self.drs_Level[1] = value
+
+    @property
+    def OreStock_Level(self) -> float:
+        """Alias for drs_Level[2]"""
+        return self.drs_Level[2]
+
+    @OreStock_Level.setter
+    def OreStock_Level(self, value: float):
+        self.drs_Level[2] = value
+
+    @property
+    def Ore1Stock_Level(self) -> float:
+        """Alias for drs_Level[3]"""
+        return self.drs_Level[3]
+
+    @Ore1Stock_Level.setter
+    def Ore1Stock_Level(self, value: float):
+        self.drs_Level[3] = value
+
+    @property
+    def Ore2Stock_Level(self) -> float:
+        """Alias for drs_Level[4]"""
+        return self.drs_Level[4]
+
+    @Ore2Stock_Level.setter
+    def Ore2Stock_Level(self, value: float):
+        self.drs_Level[4] = value
+
+    @property
+    def TimeExecutedInCurrentCampaignOrShutdown_Timer(self) -> float:
+        """Alias for drs_Timer[0]"""
+        return self.drs_Timer[0]
+
+    @TimeExecutedInCurrentCampaignOrShutdown_Timer.setter
+    def TimeExecutedInCurrentCampaignOrShutdown_Timer(self, value: float):
+        self.drs_Timer[0] = value
+
+    @property
+    def TimeExecutedInCurrentContingencySegment_Timer(self) -> float:
+        """Alias for drs_Timer[1]"""
+        return self.drs_Timer[1]
+
+    @TimeExecutedInCurrentContingencySegment_Timer.setter
+    def TimeExecutedInCurrentContingencySegment_Timer(self, value: float):
+        self.drs_Timer[1] = value
+
+    @property
+    def TimeInModeA_Timer(self) -> float:
+        """Alias for drs_Timer[2]"""
+        return self.drs_Timer[2]
+
+    @TimeInModeA_Timer.setter
+    def TimeInModeA_Timer(self, value: float):
+        self.drs_Timer[2] = value
+
+    @property
+    def TimeInModeAContingency_Timer(self) -> float:
+        """Alias for drs_Timer[3]"""
+        return self.drs_Timer[3]
+
+    @TimeInModeAContingency_Timer.setter
+    def TimeInModeAContingency_Timer(self, value: float):
+        self.drs_Timer[3] = value
+
+    @property
+    def TimeInModeAMineSurging_Timer(self) -> float:
+        """Alias for drs_Timer[4]"""
+        return self.drs_Timer[4]
+
+    @TimeInModeAMineSurging_Timer.setter
+    def TimeInModeAMineSurging_Timer(self, value: float):
+        self.drs_Timer[4] = value
+
+    @property
+    def TimeInModeB_Timer(self) -> float:
+        """Alias for drs_Timer[5]"""
+        return self.drs_Timer[5]
+
+    @TimeInModeB_Timer.setter
+    def TimeInModeB_Timer(self, value: float):
+        self.drs_Timer[5] = value
+
+    @property
+    def TimeInModeBContingency_Timer(self) -> float:
+        """Alias for drs_Timer[6]"""
+        return self.drs_Timer[6]
+
+    @TimeInModeBContingency_Timer.setter
+    def TimeInModeBContingency_Timer(self, value: float):
+        self.drs_Timer[6] = value
+
+    @property
+    def TimeInModeBMineSurging_Timer(self) -> float:
+        """Alias for drs_Timer[7]"""
+        return self.drs_Timer[7]
+
+    @TimeInModeBMineSurging_Timer.setter
+    def TimeInModeBMineSurging_Timer(self, value: float):
+        self.drs_Timer[7] = value
+
+    @property
+    def TimeInShutdown_Timer(self) -> float:
+        """Alias for drs_Timer[8]"""
+        return self.drs_Timer[8]
+
+    @property
+    def MassOfCurrentParcel(self) -> float:
+        """Alias for drs_DiscretelyDynamicalNumericalVariable[0]"""
+        return self.drs_DiscretelyDynamicalNumericalVariable[0]
+
+    @MassOfCurrentParcel.setter
+    def MassOfCurrentParcel(self, value: float):
+        self.drs_DiscretelyDynamicalNumericalVariable[0] = value
+
+    @property
+    def PercentageOfOre2InCurrentParcel(self) -> float:
+        """Alias for drs_DiscretelyDynamicalNumericalVariable[1]"""
+        return self.drs_DiscretelyDynamicalNumericalVariable[1]
+
+    @PercentageOfOre2InCurrentParcel.setter
+    def PercentageOfOre2InCurrentParcel(self, value: float):
+        self.drs_DiscretelyDynamicalNumericalVariable[1] = value
+
+    @property
+    def NextParcelIsNewFacies(self) -> float:
+        """Alias for drs_DiscretelyDynamicalNumericalVariable[2]"""
+        return self.drs_DiscretelyDynamicalNumericalVariable[2]
+
+    @NextParcelIsNewFacies.setter
+    def NextParcelIsNewFacies(self, value: float):
+        self.drs_DiscretelyDynamicalNumericalVariable[2] = value
+
+    @TimeInShutdown_Timer.setter
+    def TimeInShutdown_Timer(self, value: float):
+        self.drs_Timer[8] = value
