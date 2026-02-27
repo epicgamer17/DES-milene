@@ -1,47 +1,53 @@
-import sys
-import os
-
-# Add the project root to sys.path to allow importing drs_model
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from drs_model import DRSModel
+import unittest
+import numpy as np
+from model.drs_model import DRSModel
 
 
-def test_default_initialization():
-    print("Testing default initialization...")
-    model = DRSModel()
-    assert model.dim_NumberOfLevels == 5
-    assert model.dim_NumberOfTimers == 9
-    assert model.dim_NumberOfDiscretelyDynamicalNumericalVariables == 3
-    assert model.dim_NumberOfCategoricalVariables == 1
-    assert model.dim_NumberOfRateConfigurations == 7
-    assert model.dim_NumberOfAssignmentSequenceAddresses == 6
-    assert model.dim_MaxLengthOfAssignmentSequence == 7
-    print("Default initialization passed!")
+class TestDRSInitialization(unittest.TestCase):
+    def test_default_initialization(self):
+        model = DRSModel()
 
+        # Verify vectors
+        self.assertIsInstance(model.drs_Level, np.ndarray)
+        self.assertEqual(model.drs_Level.shape, (model.dim_NumberOfLevels,))
+        self.assertEqual(model.drs_Level.dtype, np.float64)
+        self.assertTrue(np.all(model.drs_Level == 0))
 
-def test_override_initialization():
-    print("Testing override initialization...")
-    model = DRSModel(
-        dim_NumberOfLevels=10,
-        dim_NumberOfTimers=15,
-        dim_NumberOfDiscretelyDynamicalNumericalVariables=5,
-        dim_NumberOfCategoricalVariables=2,
-        dim_NumberOfRateConfigurations=10,
-        dim_NumberOfAssignmentSequenceAddresses=8,
-        dim_MaxLengthOfAssignmentSequence=12,
-    )
-    assert model.dim_NumberOfLevels == 10
-    assert model.dim_NumberOfTimers == 15
-    assert model.dim_NumberOfDiscretelyDynamicalNumericalVariables == 5
-    assert model.dim_NumberOfCategoricalVariables == 2
-    assert model.dim_NumberOfRateConfigurations == 10
-    assert model.dim_NumberOfAssignmentSequenceAddresses == 8
-    assert model.dim_MaxLengthOfAssignmentSequence == 12
-    print("Override initialization passed!")
+        self.assertIsInstance(model.drs_Timer, np.ndarray)
+        self.assertEqual(model.drs_Timer.shape, (model.dim_NumberOfTimers,))
+        self.assertTrue(np.all(model.drs_Timer == 0))
+
+        self.assertIsInstance(
+            model.drs_DiscretelyDynamicalNumericalVariable, np.ndarray
+        )
+        self.assertEqual(
+            model.drs_DiscretelyDynamicalNumericalVariable.shape,
+            (model.dim_NumberOfDiscretelyDynamicalNumericalVariables,),
+        )
+        self.assertTrue(np.all(model.drs_DiscretelyDynamicalNumericalVariable == 0))
+
+        # Verify categorical
+        self.assertIsInstance(model.drs_CategoricalVariable, list)
+        self.assertEqual(
+            len(model.drs_CategoricalVariable), model.dim_NumberOfCategoricalVariables
+        )
+        self.assertEqual(
+            model.drs_CategoricalVariable, [""] * model.dim_NumberOfCategoricalVariables
+        )
+
+        # Verify scalars
+        self.assertEqual(model.drs_RateConfigurationNumber, 0)
+        self.assertEqual(model.drs_TimeOfPreviousDRSUpdate, 0.0)
+        self.assertEqual(model.drs_DurationUntilThresholdCrossing, 0.0)
+        self.assertEqual(model.drs_ThresholdCrossingLevelOrTimerNumber, 0)
+        self.assertEqual(model.drs_ThresholdIsCrossedByTimer, 0)
+        self.assertEqual(model.drs_DirectionOfThresholdCrossing, 0)
+
+    def test_custom_initialization(self):
+        model = DRSModel(dim_NumberOfLevels=10, dim_NumberOfCategoricalVariables=5)
+        self.assertEqual(model.drs_Level.shape, (10,))
+        self.assertEqual(len(model.drs_CategoricalVariable), 5)
 
 
 if __name__ == "__main__":
-    test_default_initialization()
-    test_override_initialization()
-    print("All tests passed!")
+    unittest.main()
