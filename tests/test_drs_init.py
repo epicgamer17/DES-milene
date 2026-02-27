@@ -106,10 +106,10 @@ class TestDRSInitialization(unittest.TestCase):
         # Assignment Sequence Matrix
         self.assertEqual(
             len(model.confExString_AssignmentSequence),
-            model.dim_MaxLengthOfAssignmentSequence,
+            model.dim_NumberOfAssignmentSequenceAddresses,
         )
         for row in model.confExString_AssignmentSequence:
-            self.assertEqual(len(row), model.dim_NumberOfAssignmentSequenceAddresses)
+            self.assertEqual(len(row), model.dim_MaxLengthOfAssignmentSequence)
             self.assertTrue(all(cell == "" for cell in row))
 
 

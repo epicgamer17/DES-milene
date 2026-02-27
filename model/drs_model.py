@@ -1,6 +1,6 @@
 import numpy as np
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import matplotlib.pyplot as plt
 
 
@@ -33,6 +33,7 @@ class DRSModel:
         dim_NumberOfRateConfigurations: int = 7,
         dim_NumberOfAssignmentSequenceAddresses: int = 6,
         dim_MaxLengthOfAssignmentSequence: int = 7,
+        parameters: any = None,
     ):
         """
         Initializes the dimension variables for the simulation state.
@@ -83,30 +84,16 @@ class DRSModel:
         self.history_rate_config = []
         self.history_ore_levels = []
 
-        # Domain Constants - Mining Parameters
-        self.parameter_OreToBeExtractedDuringWarmingPeriod = 600000.0
-        self.parameter_TotalOreToBeExtracted = 6600000.0
-        self.parameter_DurationOfProductionCampaigns = 34.0
-        self.parameter_DurationOfShutdowns = 1.0
-        self.parameter_ModeAOre1MillingRate = 3600.0
-        self.parameter_ModeAOre2MillingRate = 2400.0
-        self.parameter_ModeAContingencyOre1MillingRate = 3900.0
-        self.parameter_ModeBOre1MillingRate = 4600.0
-        self.parameter_ModeBOre2MillingRate = 800.0
-        self.parameter_ModeBContingencyOre2MillingRate = 2500.0
-        self.parameterVector_GeostatisticalModelParameters = [
-            30000.0,
-            50000.0,
-            30.0,
-            30.0,
-            5.0,
-            1.0,
-        ]
-
-        # Domain Constants - Control Variables
-        self.controlVariable_CriticalOre2Level = 20400.0
-        self.controlVariable_TargetOreStockLevel = 60000.0
-        self.controlVariable_DurationOfContingencySegments = 1.0
+        # Unpack external parameters if provided
+        if parameters is not None:
+            # Handle both dataclasses and classes/objects
+            params_dict = (
+                asdict(parameters)
+                if hasattr(parameters, "__dataclass_fields__")
+                else vars(parameters)
+            )
+            for key, value in params_dict.items():
+                setattr(self, key, value)
 
         # Configuration Expression Strings - Scalars
         self.confExString_TerminatingCondition = ""
@@ -184,8 +171,8 @@ class DRSModel:
 
         # Configuration Expression Strings - Assignment Sequence
         self.confExString_AssignmentSequence = [
-            ["" for _ in range(self.dim_NumberOfAssignmentSequenceAddresses)]
-            for _ in range(self.dim_MaxLengthOfAssignmentSequence)
+            ["" for _ in range(self.dim_MaxLengthOfAssignmentSequence)]
+            for _ in range(self.dim_NumberOfAssignmentSequenceAddresses)
         ]
 
     @property
@@ -372,12 +359,11 @@ class DRSModel:
                         ), f"Inner dimension mismatch for {key}: expected {self.dim_NumberOfRateConfigurations}, got {len(value[0])}"
                     elif key == "confExString_AssignmentSequence":
                         assert (
-                            len(value) == self.dim_MaxLengthOfAssignmentSequence
-                        ), f"Outer dimension mismatch for {key}: expected {self.dim_MaxLengthOfAssignmentSequence}, got {len(value)}"
+                            len(value) == self.dim_NumberOfAssignmentSequenceAddresses
+                        ), f"Outer dimension mismatch for {key}: expected {self.dim_NumberOfAssignmentSequenceAddresses}, got {len(value)}"
                         assert (
-                            len(value[0])
-                            == self.dim_NumberOfAssignmentSequenceAddresses
-                        ), f"Inner dimension mismatch for {key}: expected {self.dim_NumberOfAssignmentSequenceAddresses}, got {len(value[0])}"
+                            len(value[0]) == self.dim_MaxLengthOfAssignmentSequence
+                        ), f"Inner dimension mismatch for {key}: expected {self.dim_MaxLengthOfAssignmentSequence}, got {len(value[0])}"
 
                 # Basic shape validation for 1D lists (vectors)
                 elif isinstance(value, list):
@@ -407,36 +393,39 @@ class DRSModel:
     def evaluate_expression(self, expression_string: str) -> float:
         """
         Parses and executes Arena formula strings against the simulation state.
-
-        Args:
-            expression_string: The Arena-formatted formula string.
-
-        Returns:
-            The evaluated result as a float.
         """
-        if not expression_string or expression_string.strip() == "0":
+        if not expression_string or expression_string.strip() == "":
             return 0.0
 
         processed = expression_string.strip()
 
-        # Remove Eval(...) wrapper if it exists
+        # 1. Remove Eval(...) wrapper if it exists
         eval_match = re.match(r"^Eval\((.*)\)$", processed, re.IGNORECASE)
         if eval_match:
             processed = eval_match.group(1)
 
-        # Translate Arena functions MN/MX to min/max
+        # 2. Translate Arena Math & Logic to Python
+        processed = processed.replace("&&", " and ")
+        processed = processed.replace("<>", " != ")
         processed = processed.replace("MN(", "min(").replace("MX(", "max(")
+        processed = processed.replace("ABS(", "abs(")
+        processed = processed.replace("UNIF(", "np.random.uniform(")
+        processed = processed.replace("NORM(", "np.random.normal(")
 
-        # Convert 1-based parentheses indexing to 0-based bracket indexing
-        # Patterns like drs_Level(X) -> drs_Level[X-1]
+        # 3. Handle 1-based indexing for drs_ arrays and parameter vectors
         def replace_index(match):
             prefix = match.group(1)
             index = int(match.group(2))
             return f"{prefix}[{index - 1}]"
 
         processed = re.sub(r"(drs_Level|drs_Timer)\((\d+)\)", replace_index, processed)
+        processed = re.sub(
+            r"(parameterVector_GeostatisticalModelParameters)\((\d+)\)",
+            replace_index,
+            processed,
+        )
 
-        # Local namespace for safe evaluation
+        # 4. Build the Execution Namespace
         local_namespace = {
             "drs_Level": self.drs_Level,
             "drs_Timer": self.drs_Timer,
@@ -444,17 +433,40 @@ class DRSModel:
             "TNOW": self.TNOW,
             "min": min,
             "max": max,
-            "MN": min,
-            "MX": max,
+            "abs": abs,
+            "np": np,  # Needed for the random distribution functions
         }
+
+        # Dynamically load all parameters and properties into the namespace so eval() can see them
+        for attr in dir(self):
+            if (
+                attr.startswith("parameter")
+                or attr.startswith("controlVariable")
+                or attr.endswith("_Level")
+                or attr.endswith("_Timer")
+                or attr
+                in [
+                    "MassOfCurrentParcel",
+                    "PercentageOfOre2InCurrentParcel",
+                    "NextParcelIsNewFacies",
+                    "NextParcelIsNewFacie",
+                ]
+            ):
+                local_namespace[attr] = getattr(self, attr)
 
         try:
             # Safely evaluate the expression
             result = eval(processed, {"__builtins__": None}, local_namespace)
+
+            # Handle booleans returned by logic gates (e.g. OreStock > Target)
+            if isinstance(result, bool):
+                return 1.0 if result else 0.0
+
             return float(result)
         except Exception as e:
-            # In a real scenario, we might want more specific error handling or logging
-            raise ValueError(f"Error evaluating expression '{expression_string}': {e}")
+            raise ValueError(
+                f"Error evaluating expression '{expression_string}'\nTranslated to: '{processed}'\nError: {e}"
+            )
 
     def initialize_simulation(self):
         """
@@ -648,10 +660,10 @@ class DRSModel:
         # 1-based address to 0-based Python index
         addr_idx = self.current_assignment_address - 1
 
-        # The assignment sequence is stored as Matrix[MaxLength][NumberOfAddresses]
+        # The assignment sequence is stored as Matrix[NumberOfAddresses][MaxLength]
         # We need to iterate through the sequence for the given address.
         for step in range(self.dim_MaxLengthOfAssignmentSequence):
-            assignment_str = self.confExString_AssignmentSequence[step][addr_idx]
+            assignment_str = self.confExString_AssignmentSequence[addr_idx][step]
             if not assignment_str or assignment_str.strip() == "":
                 continue
 

@@ -56,8 +56,8 @@ def test_load_configuration_valid_matrices(drs_model):
 
 
 def test_load_configuration_assignment_sequence(drs_model):
-    # MaxLength x Addresses: 2 x 2
-    seq = [["Addr1", "Val1"], ["Addr2", "Val2"]]
+    # Addresses x MaxLength: 2 x 2
+    seq = [["Addr1Step1", "Addr1Step2"], ["Addr2Step1", "Addr2Step2"]]
     config = {"confExString_AssignmentSequence": seq}
     drs_model.load_configuration(config)
     assert drs_model.confExString_AssignmentSequence == seq

@@ -88,7 +88,7 @@ def test_execute_assignments_no_address(drs_model):
 def test_execute_assignments_multiple_steps(drs_model):
     """Verify that multiple steps in a sequence are executed."""
     drs_model.confExString_AssignmentSequence[0][0] = "L001=10"
-    drs_model.confExString_AssignmentSequence[1][0] = "L002=20"
+    drs_model.confExString_AssignmentSequence[0][1] = "L002=20"
     drs_model.current_assignment_address = 1
 
     drs_model.execute_assignments()
