@@ -575,3 +575,79 @@ class DRSModel:
                 addr_expr = "0"
 
         self.current_assignment_address = int(self.evaluate_expression(addr_expr))
+
+    def execute_assignments(self):
+        """
+        Parses and applies discrete instantaneous changes triggered by threshold events.
+        Loops through the assignment sequence at current_assignment_address.
+        """
+        if self.current_assignment_address == 0:
+            return
+
+        # 1-based address to 0-based Python index
+        addr_idx = self.current_assignment_address - 1
+
+        # The assignment sequence is stored as Matrix[MaxLength][NumberOfAddresses]
+        # We need to iterate through the sequence for the given address.
+        for step in range(self.dim_MaxLengthOfAssignmentSequence):
+            assignment_str = self.confExString_AssignmentSequence[step][addr_idx]
+            if not assignment_str or assignment_str.strip() == "":
+                continue
+
+            assignment_str = assignment_str.strip()
+            # Extract type identifier: 'L', 'T', 'N', 'C', or 'E'
+            type_id = assignment_str[0].upper()
+
+            # Extract 1-based target index (indices 1 to 3)
+            # E.g., "L002=150" -> index "002" -> 2
+            try:
+                target_idx_1based = int(assignment_str[1:4])
+            except (ValueError, IndexError):
+                # If the string doesn't follow the "Xnnn=" format strictly, we might need more robust parsing.
+                # But following instructions for extraction indices 1 to 3.
+                continue
+
+            target_idx = target_idx_1based - 1  # 0-based
+
+            # Extract the expression (indices 5 onwards)
+            # E.g., "L002=150" -> "=150" is at index 4 onwards, expression starts at 5
+            expression = assignment_str[5:]
+
+            if type_id == "E":
+                # For 'E', cast expression to int and execute external code
+                try:
+                    code_number = int(expression)
+                    self.execute_external_code(code_number)
+                except ValueError:
+                    # If expression isn't a simple int, evaluate it first?
+                    # "cast the expression to an int" suggests it should be an int.
+                    val = int(self.evaluate_expression(expression))
+                    self.execute_external_code(val)
+                continue
+
+            # For others, evaluate the expression
+            value = self.evaluate_expression(expression)
+
+            if type_id == "L":
+                self.drs_Level[target_idx] = value
+            elif type_id == "T":
+                self.drs_Timer[target_idx] = value
+            elif type_id == "N":
+                self.drs_DiscretelyDynamicalNumericalVariable[target_idx] = value
+            elif type_id == "C":
+                self.drs_CategoricalVariable[target_idx] = str(value)
+
+    def execute_external_code(self, code_number: int):
+        """
+        Placeholder method for triggering custom VBA/Python logic.
+        """
+        # Simple match or if/elif block for future custom logic
+        if code_number == 1:
+            # Example logic for code 1
+            pass
+        elif code_number == 2:
+            # Example logic for code 2
+            pass
+        else:
+            # Default or unknown code logic
+            pass

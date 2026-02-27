@@ -113,6 +113,28 @@ print(f"Current Simulation Time: {model.TNOW}")
 print(f"Target Assignment Address: {model.current_assignment_address}")
 ```
 
+## Discrete Instantaneous Changes (Execute Assignments)
+
+After advancing the simulation, if a threshold event triggers an assignment sequence (i.e., `current_assignment_address > 0`), the `execute_assignments()` method parses and applies the changes.
+
+### Supported Assignment Types
+- **'L' (Level)**: Instantaneous update to a continuous level variable.
+- **'T' (Timer)**: Instantaneous update to a timer variable.
+- **'N' (Numerical)**: Update to a discretely dynamical numerical variable.
+- **'C' (Categorical)**: Update to a categorical variable.
+- **'E' (External)**: Triggers custom logic via `execute_external_code(code_number)`.
+
+### Syntax
+Assignment strings follow the format `TypeTargetIndex=Expression` (e.g., `"L002=150"`, `"E001=42"`). 
+
+```python
+model.execute_assignments()
+# If assignment was "L002=150", then model.drs_Level[1] is now 150.0
+```
+
+### External Code Hooks
+The `execute_external_code(code_number)` method is a placeholder for custom Python or VBA-style logic triggered by 'E' type assignments.
+
 ## Data Formatting Guide
 
 Whether loading from JSON or Excel, the data must follow these structures:
@@ -171,3 +193,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_model.py`: Comprehensive suite verifying matrix initialization, configuration loading, and robust expression evaluation (math, Arena functions, and state variables).
 - `tests/test_characterize_thresholds.py`: Verifies the logic for predicting next event times based on level and timer threshold crossings.
 - `tests/test_drs_advance.py`: Tests the simulation clock advancement, continuous variable updates, and assignment address determination.
+- `tests/test_drs_assignments.py`: Verifies the parsing and application of discrete instantaneous changes (Levels, Timers, Numerical, Categorical, and External code).
