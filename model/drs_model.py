@@ -1,6 +1,7 @@
 import numpy as np
 import re
 from dataclasses import dataclass
+import matplotlib.pyplot as plt
 
 
 @dataclass
@@ -828,3 +829,55 @@ class DRSModel:
             PortionOfTimeInShutdown=portions["pS"],
             Throughput=throughput,
         )
+
+    def plot_results(self):
+        """
+        Generates graphical outputs: "Modes" plot and "Ore Level" plot.
+        """
+        if not self.history_time:
+            print("No history data to plot.")
+            return
+
+        times = np.array(self.history_time)
+        rate_configs = np.array(self.history_rate_config)
+        ore_levels = np.array(self.history_ore_levels)
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
+
+        # Plot 1: Modes Plot
+        # Mode A: Y=3 if rate_config in [1, 2, 3] else 0
+        mode_a = np.where(np.isin(rate_configs, [1, 2, 3]), 3, 0)
+        # Mode B: Y=2 if rate_config in [4, 5, 6] else 0
+        mode_b = np.where(np.isin(rate_configs, [4, 5, 6]), 2, 0)
+        # Shutdown: Y=1 if rate_config == 7 else 0
+        shutdown = np.where(rate_configs == 7, 1, 0)
+
+        ax1.step(times, mode_a, where="post", label="Mode A", color="blue")
+        ax1.step(times, mode_b, where="post", label="Mode B", color="orange")
+        ax1.step(times, shutdown, where="post", label="Shutdown", color="red")
+
+        ax1.set_ylim(0, 4)
+        ax1.set_ylabel("Active Mode")
+        ax1.set_title("Simulation Modes")
+        ax1.legend()
+        ax1.grid(True)
+
+        # Plot 2: Ore Level Plot
+        # Unpack and divide by 1000 for kilotonnes
+        total_ore = ore_levels[:, 0] / 1000.0
+        ore1 = ore_levels[:, 1] / 1000.0
+        ore2 = ore_levels[:, 2] / 1000.0
+
+        ax2.plot(times, total_ore, label="Total Ore Stockpile Level", color="black")
+        ax2.plot(times, ore1, label="Ore 1 Stockpile Level", color="green")
+        ax2.plot(times, ore2, label="Ore 2 Stockpile Level", color="pink")
+
+        ax2.set_ylim(0, 80)
+        ax2.set_ylabel("Ore Level (kt)")
+        ax2.set_xlabel("Time (h)")
+        ax2.set_title("Ore Stockpile Levels")
+        ax2.legend()
+        ax2.grid(True)
+
+        plt.tight_layout()
+        plt.show()

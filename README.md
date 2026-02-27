@@ -184,6 +184,22 @@ stats = model.calculate_statistics()
 print(f"Total Throughput: {stats.Throughput:.2f} tons/day")
 print(f"Portion of Time in Shutdown: {stats.PortionOfTimeInShutdown * 100:.1f}%")
 ```
+
+## Graphical Output (Plotting Results)
+
+The `DRSModel` includes a `plot_results()` method to generate visual reports of the simulation history. This requires `matplotlib`.
+
+### Plots Generated:
+1.  **Simulation Modes**: A stairs/step plot showing the active operating modes over time.
+    *   **Mode A**: (Rate Configurations 1, 2, 3) - Plotted at Y=3.
+    *   **Mode B**: (Rate Configurations 4, 5, 6) - Plotted at Y=2.
+    *   **Shutdown**: (Rate Configuration 7) - Plotted at Y=1.
+2.  **Ore Stockpile Levels**: A line plot showing the levels of Total Ore, Ore 1, and Ore 2 (in kilotonnes) over time.
+
+```python
+model.run()
+model.plot_results()
+```
  
 ## Domain Constants and Control Variables
 
@@ -269,3 +285,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_parameters.py`: Verifies that the DRSModel initializes with the correct hardcoded domain constants and mining parameters.
 - `tests/test_drs_logging.py`: Verifies the data logging mechanism (history tracking) during simulation advancement.
 - `tests/test_statistics.py`: Verifies the calculation of final simulation statistics, including portions of time and throughput.
+- `tests/test_drs_plotting.py`: Verifies the implementation of graphical outputs by checking history data processing and plot configuration.
