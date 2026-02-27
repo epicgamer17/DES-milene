@@ -148,6 +148,21 @@ model.update_rate_configuration()
 print(f"New Rate Configuration: {model.drs_RateConfigurationNumber}")
 ```
 
+## Data Logging (History Tracking)
+ 
+To facilitate post-simulation analysis and plotting, the `DRSModel` automatically logs the system state every time the clock advances. Two entries are recorded for every clock jump: one exactly @ TNOW (before the jump) and one exactly @ TNOW_new (after all levels and assignments are updated). This ensures that step-plots will show sharp, 90-degree transitions.
+ 
+### Logged Variables
+- `history_time`: List of `TNOW` values.
+- `history_rate_config`: List of `drs_RateConfigurationNumber` values.
+- `history_ore_levels`: List of tuples containing `(OreStock_Level, Ore1Stock_Level, Ore2Stock_Level)`.
+ 
+```python
+# Accessing logs after a simulation run
+# history_time: [0.0, 5.0, 5.0, 12.0, ...]
+# history_ore_levels: [(1000, 500, 500), (1200, 600, 600), (1500, 600, 600), ...]
+```
+ 
 ## Domain Constants and Control Variables
 
 The `DRSModel` includes hardcoded constants and control variables specific to the mining system model. These are initialized in the `__init__` method.
@@ -230,3 +245,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_advance.py`: Tests the simulation clock advancement, continuous variable updates, and assignment address determination.
 - `tests/test_drs_assignments.py`: Verifies the parsing and application of discrete instantaneous changes (Levels, Timers, Numerical, Categorical, and External code).
 - `tests/test_drs_parameters.py`: Verifies that the DRSModel initializes with the correct hardcoded domain constants and mining parameters.
+- `tests/test_drs_logging.py`: Verifies the data logging mechanism (history tracking) during simulation advancement.

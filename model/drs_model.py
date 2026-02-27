@@ -62,6 +62,11 @@ class DRSModel:
         self.drs_DirectionOfThresholdCrossing = 0
         self.current_assignment_address = 0
 
+        # History Logs
+        self.history_time = []
+        self.history_rate_config = []
+        self.history_ore_levels = []
+
         # Domain Constants - Mining Parameters
         self.parameter_OreToBeExtractedDuringWarmingPeriod = 600000.0
         self.parameter_TotalOreToBeExtracted = 6600000.0
@@ -554,6 +559,13 @@ class DRSModel:
         """
         duration = max(self.drs_DurationUntilThresholdCrossing, 0.0)
 
+        # Log before update
+        self.history_time.append(self.TNOW)
+        self.history_rate_config.append(self.drs_RateConfigurationNumber)
+        self.history_ore_levels.append(
+            (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
+        )
+
         # Advance global clock
         self.TNOW += duration
 
@@ -601,6 +613,13 @@ class DRSModel:
                 addr_expr = "0"
 
         self.current_assignment_address = int(self.evaluate_expression(addr_expr))
+
+        # Log after update
+        self.history_time.append(self.TNOW)
+        self.history_rate_config.append(self.drs_RateConfigurationNumber)
+        self.history_ore_levels.append(
+            (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
+        )
 
     def execute_assignments(self):
         """
