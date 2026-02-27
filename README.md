@@ -95,6 +95,24 @@ model.characterize_thresholds()
 print(f"Next event in {model.drs_DurationUntilThresholdCrossing} days")
 ```
 
+## Simulation Progress (Advance Simulation)
+
+Once the next event time is known, the simulation clock is fast-forwarded to that exact moment, and all continuous variables (Levels and Timers) are updated based on their current rates. The `advance_simulation()` method handles this transition.
+
+### Key Actions
+1. **Advances TNOW**: Increments the simulation clock by the predicted duration.
+2. **Updates Continuous variables**:
+   - `drs_Level[i] += rate * duration`
+   - `drs_Timer[i] += rate * duration`
+3. **Synchronizes Update Time**: Sets `drs_TimeOfPreviousDRSUpdate` to the new `TNOW`.
+4. **Determines Assignment Address**: Identifies the specific `current_assignment_address` (as an integer) from the configuration matrices based on which entity triggered the threshold.
+
+```python
+model.advance_simulation()
+print(f"Current Simulation Time: {model.TNOW}")
+print(f"Target Assignment Address: {model.current_assignment_address}")
+```
+
 ## Data Formatting Guide
 
 Whether loading from JSON or Excel, the data must follow these structures:
@@ -152,3 +170,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_expressions.py`: Tests the Arena-to-Python expression translation and safe evaluation engine.
 - `tests/test_drs_model.py`: Comprehensive suite verifying matrix initialization, configuration loading, and robust expression evaluation (math, Arena functions, and state variables).
 - `tests/test_characterize_thresholds.py`: Verifies the logic for predicting next event times based on level and timer threshold crossings.
+- `tests/test_drs_advance.py`: Tests the simulation clock advancement, continuous variable updates, and assignment address determination.

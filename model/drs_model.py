@@ -60,6 +60,7 @@ class DRSModel:
         self.drs_ThresholdCrossingLevelOrTimerNumber = 0
         self.drs_ThresholdIsCrossedByTimer = 0
         self.drs_DirectionOfThresholdCrossing = 0
+        self.current_assignment_address = 0
 
         # Configuration Expression Strings - Scalars
         self.confExString_TerminatingCondition = ""
@@ -520,3 +521,57 @@ class DRSModel:
                 self.drs_ThresholdCrossingLevelOrTimerNumber = i
                 self.drs_ThresholdIsCrossedByTimer = 1
                 self.drs_DirectionOfThresholdCrossing = direction
+
+    def advance_simulation(self):
+        """
+        Fast-forwards the simulation clock and updates continuous variables.
+        """
+        duration = max(self.drs_DurationUntilThresholdCrossing, 0.0)
+
+        # Advance global clock
+        self.TNOW += duration
+
+        rate_config = self.drs_RateConfigurationNumber
+
+        # Update Levels
+        for i in range(self.dim_NumberOfLevels):
+            rate_expr = self.confExString_LevelRate[i][rate_config]
+            rate = self.evaluate_expression(rate_expr)
+            self.drs_Level[i] += rate * duration
+
+        # Update Timers
+        for i in range(self.dim_NumberOfTimers):
+            rate_expr = self.confExString_TimerRate[i][rate_config]
+            rate = self.evaluate_expression(rate_expr)
+            self.drs_Timer[i] += rate * duration
+
+        self.drs_TimeOfPreviousDRSUpdate = self.TNOW
+
+        # Determine Assignment Address
+        idx = self.drs_ThresholdCrossingLevelOrTimerNumber
+        direction = self.drs_DirectionOfThresholdCrossing
+
+        if self.drs_ThresholdIsCrossedByTimer == 0:  # Level
+            if direction == -1:  # Lower
+                addr_expr = self.confExString_LowerLevelAssignmentAddress[idx][
+                    rate_config
+                ]
+            elif direction == 1:  # Upper
+                addr_expr = self.confExString_UpperLevelAssignmentAddress[idx][
+                    rate_config
+                ]
+            else:
+                addr_expr = "0"
+        else:  # Timer
+            if direction == -1:  # Lower
+                addr_expr = self.confExString_LowerTimerAssignmentAddress[idx][
+                    rate_config
+                ]
+            elif direction == 1:  # Upper
+                addr_expr = self.confExString_UpperTimerAssignmentAddress[idx][
+                    rate_config
+                ]
+            else:
+                addr_expr = "0"
+
+        self.current_assignment_address = int(self.evaluate_expression(addr_expr))
