@@ -10,11 +10,18 @@ The simulation is built around the `DRSModel`, which manages the state of the sy
 - **Timers (`drs_Timer`)**: Variables that track elapsed time in various modes or subsystems (e.g., Shutdown time, Mode A active time).
 - **Discrete Variables (`drs_DiscretelyDynamicalNumericalVariable`)**: Numerical values that change discretely at event points (e.g., Parcel mass, Facies flags).
 - **Categorical Variables (`drs_CategoricalVariable`)**: Discrete labels or status strings.
+- **Configuration Expressions (`confExString_*`)**: Dynamic formulas (as strings) that dictate rates, thresholds, and initial values based on the current "Rate Configuration".
 
 ### Pythonic Aliases
 To make the code more readable and aligned with the domain (mining), the `DRSModel` uses Python properties to alias raw array indices to meaningful names:
 - `model.OreExtraction_Level` maps to `model.drs_Level[0]`
 - `model.TimeInShutdown_Timer` maps to `model.drs_Timer[8]`
+
+### Dynamic Formulas
+The `DRSModel` includes extensive support for configuration expression strings, which allow the simulation logic to be defined dynamically:
+- **Scalars**: Terminating conditions and initial rate configurations.
+- **Vectors**: Initial values for levels, timers, and variables.
+- **Matrices**: Level-specific and timer-specific rates, thresholds, and assignment sequences, indexed by "Rate Configuration".
 
 ## Installation
 
@@ -64,5 +71,5 @@ pytest tests/test_drs_model.py
 ```
 
 ### Coverage
-- `tests/test_drs_init.py`: Verifies correct initialization of all state vectors and scalar variables.
+- `tests/test_drs_init.py`: Verifies correct initialization of all state vectors, scalar variables, and the complex configuration expression string matrices.
 - `tests/test_drs_aliases.py`: Ensures that properties correctly map to and mutate the underlying NumPy arrays.

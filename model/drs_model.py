@@ -57,6 +57,86 @@ class DRSModel:
         self.drs_ThresholdIsCrossedByTimer = 0
         self.drs_DirectionOfThresholdCrossing = 0
 
+        # Configuration Expression Strings - Scalars
+        self.confExString_TerminatingCondition = ""
+        self.confExString_InitialRateConfigurationNumber = "0"
+
+        # Configuration Expression Strings - Vectors
+        self.confExString_InitialLevelValue = [""] * self.dim_NumberOfLevels
+        self.confExString_InitialTimerValue = [""] * self.dim_NumberOfTimers
+        self.confExString_InitialDiscretelyDynamicalNumericalVariableValue = [
+            ""
+        ] * self.dim_NumberOfDiscretelyDynamicalNumericalVariables
+        self.confExString_InitialCategoricalVariableValue = [
+            ""
+        ] * self.dim_NumberOfCategoricalVariables
+
+        # Configuration Expression Strings - Matrices (Levels x RateConfigurations)
+        self.confExString_LevelRate = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfLevels)
+        ]
+        self.confExString_LowerLevelThreshold = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfLevels)
+        ]
+        self.confExString_UpperLevelThreshold = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfLevels)
+        ]
+        self.confExString_LowerLevelResultantRateConfiguration = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfLevels)
+        ]
+        self.confExString_UpperLevelResultantRateConfiguration = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfLevels)
+        ]
+        self.confExString_LowerLevelAssignmentAddress = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfLevels)
+        ]
+        self.confExString_UpperLevelAssignmentAddress = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfLevels)
+        ]
+
+        # Configuration Expression Strings - Matrices (Timers x RateConfigurations)
+        self.confExString_TimerRate = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfTimers)
+        ]
+        self.confExString_LowerTimerThreshold = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfTimers)
+        ]
+        self.confExString_UpperTimerThreshold = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfTimers)
+        ]
+        self.confExString_LowerTimerResultantRateConfiguration = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfTimers)
+        ]
+        self.confExString_UpperTimerResultantRateConfiguration = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfTimers)
+        ]
+        self.confExString_LowerTimerAssignmentAddress = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfTimers)
+        ]
+        self.confExString_UpperTimerAssignmentAddress = [
+            ["" for _ in range(self.dim_NumberOfRateConfigurations)]
+            for _ in range(self.dim_NumberOfTimers)
+        ]
+
+        # Configuration Expression Strings - Assignment Sequence
+        self.confExString_AssignmentSequence = [
+            ["" for _ in range(self.dim_NumberOfAssignmentSequenceAddresses)]
+            for _ in range(self.dim_MaxLengthOfAssignmentSequence)
+        ]
+
     @property
     def OreExtraction_Level(self) -> float:
         """Alias for drs_Level[0]"""
