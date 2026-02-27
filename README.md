@@ -135,6 +135,19 @@ model.execute_assignments()
 ### External Code Hooks
 The `execute_external_code(code_number)` method is a placeholder for custom Python or VBA-style logic triggered by 'E' type assignments.
 
+## Rate Configuration Update (State Machine)
+
+After advancing the simulation and executing assignments, the system must shift into its new operational state (e.g., transitioning from "Mode A" to "Shutdown"). The `update_rate_configuration()` method handles this by evaluating the "Resultant Rate Configuration" matrices.
+
+### How it Works
+1. **Identifies the Trigger**: Uses `drs_ThresholdIsCrossedByTimer` and `drs_DirectionOfThresholdCrossing` to select the correct transition matrix.
+2. **Evaluates New State**: Accesses the matrix at `(ThresholdCrossingNumber, CurrentRateConfiguration)` and evaluates the expression to find the integer for the next `drs_RateConfigurationNumber`.
+
+```python
+model.update_rate_configuration()
+print(f"New Rate Configuration: {model.drs_RateConfigurationNumber}")
+```
+
 ## Data Formatting Guide
 
 Whether loading from JSON or Excel, the data must follow these structures:

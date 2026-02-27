@@ -651,3 +651,29 @@ class DRSModel:
         else:
             # Default or unknown code logic
             pass
+
+    def update_rate_configuration(self):
+        """
+        Shifts the system into its new state (rate configuration) based on the threshold crossed.
+        """
+        idx = self.drs_ThresholdCrossingLevelOrTimerNumber
+        current_rate_config = self.drs_RateConfigurationNumber
+        direction = self.drs_DirectionOfThresholdCrossing
+
+        if self.drs_ThresholdIsCrossedByTimer == 0:  # Level
+            if direction == -1:  # Lower
+                matrix = self.confExString_LowerLevelResultantRateConfiguration
+            else:  # Upper (1)
+                matrix = self.confExString_UpperLevelResultantRateConfiguration
+        else:  # Timer (1)
+            if direction == -1:  # Lower
+                matrix = self.confExString_LowerTimerResultantRateConfiguration
+            else:  # Upper (1)
+                matrix = self.confExString_UpperTimerResultantRateConfiguration
+
+        # Evaluate the string at (ThresholdCrossingNumber, CurrentRateConfiguration)
+        expr = matrix[idx][current_rate_config]
+        new_rate_config = int(self.evaluate_expression(expr))
+
+        # Assign the new rate configuration
+        self.drs_RateConfigurationNumber = new_rate_config

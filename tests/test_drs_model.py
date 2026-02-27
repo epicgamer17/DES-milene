@@ -112,3 +112,22 @@ def test_initialize_simulation(model):
     assert model.drs_Timer[0] == 20.0
     assert model.drs_DiscretelyDynamicalNumericalVariable[0] == 50.0
     assert model.drs_CategoricalVariable[0] == "5.0"
+
+
+def test_update_rate_configuration(model):
+    """
+    Verify that update_rate_configuration correctly shifts the system state.
+    Scenario: Level 0 hit its lower threshold.
+    """
+    model.drs_ThresholdCrossingLevelOrTimerNumber = 0
+    model.drs_ThresholdIsCrossedByTimer = 0  # Level
+    model.drs_DirectionOfThresholdCrossing = -1  # Lower
+    model.drs_RateConfigurationNumber = 2  # Current configuration
+
+    # Mock the resultant rate configuration for this crossing
+    # Matrix: LowerLevelResultantRateConfiguration[0][2] = "7"
+    model.confExString_LowerLevelResultantRateConfiguration[0][2] = "7"
+
+    model.update_rate_configuration()
+
+    assert model.drs_RateConfigurationNumber == 7
