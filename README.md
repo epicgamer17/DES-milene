@@ -148,6 +148,28 @@ model.update_rate_configuration()
 print(f"New Rate Configuration: {model.drs_RateConfigurationNumber}")
 ```
 
+## Domain Constants and Control Variables
+
+The `DRSModel` includes hardcoded constants and control variables specific to the mining system model. These are initialized in the `__init__` method.
+
+### Mining Parameters
+- `parameter_OreToBeExtractedDuringWarmingPeriod`: 600,000.0
+- `parameter_TotalOreToBeExtracted`: 6,600,000.0
+- `parameter_DurationOfProductionCampaigns`: 34.0 days
+- `parameter_DurationOfShutdowns`: 1.0 days
+- `parameter_ModeAOre1MillingRate`: 3,600.0
+- `parameter_ModeAOre2MillingRate`: 2,400.0
+- `parameter_ModeAContingencyOre1MillingRate`: 3,900.0
+- `parameter_ModeBOre1MillingRate`: 4,600.0
+- `parameter_ModeBOre2MillingRate`: 800.0
+- `parameter_ModeBContingencyOre2MillingRate`: 2,500.0
+- `parameterVector_GeostatisticalModelParameters`: `[30000.0, 50000.0, 30.0, 30.0, 5.0, 1.0]`
+
+### Control Variables
+- `controlVariable_CriticalOre2Level`: 20,400.0
+- `controlVariable_TargetOreStockLevel`: 60,000.0
+- `controlVariable_DurationOfContingencySegments`: 1.0 day
+
 ## Data Formatting Guide
 
 Whether loading from JSON or Excel, the data must follow these structures:
@@ -207,3 +229,4 @@ pytest tests/test_drs_model.py
 - `tests/test_characterize_thresholds.py`: Verifies the logic for predicting next event times based on level and timer threshold crossings.
 - `tests/test_drs_advance.py`: Tests the simulation clock advancement, continuous variable updates, and assignment address determination.
 - `tests/test_drs_assignments.py`: Verifies the parsing and application of discrete instantaneous changes (Levels, Timers, Numerical, Categorical, and External code).
+- `tests/test_drs_parameters.py`: Verifies that the DRSModel initializes with the correct hardcoded domain constants and mining parameters.

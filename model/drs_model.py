@@ -62,6 +62,31 @@ class DRSModel:
         self.drs_DirectionOfThresholdCrossing = 0
         self.current_assignment_address = 0
 
+        # Domain Constants - Mining Parameters
+        self.parameter_OreToBeExtractedDuringWarmingPeriod = 600000.0
+        self.parameter_TotalOreToBeExtracted = 6600000.0
+        self.parameter_DurationOfProductionCampaigns = 34.0
+        self.parameter_DurationOfShutdowns = 1.0
+        self.parameter_ModeAOre1MillingRate = 3600.0
+        self.parameter_ModeAOre2MillingRate = 2400.0
+        self.parameter_ModeAContingencyOre1MillingRate = 3900.0
+        self.parameter_ModeBOre1MillingRate = 4600.0
+        self.parameter_ModeBOre2MillingRate = 800.0
+        self.parameter_ModeBContingencyOre2MillingRate = 2500.0
+        self.parameterVector_GeostatisticalModelParameters = [
+            30000.0,
+            50000.0,
+            30.0,
+            30.0,
+            5.0,
+            1.0,
+        ]
+
+        # Domain Constants - Control Variables
+        self.controlVariable_CriticalOre2Level = 20400.0
+        self.controlVariable_TargetOreStockLevel = 60000.0
+        self.controlVariable_DurationOfContingencySegments = 1.0
+
         # Configuration Expression Strings - Scalars
         self.confExString_TerminatingCondition = ""
         self.confExString_InitialRateConfigurationNumber = "0"
