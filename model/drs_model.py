@@ -395,6 +395,7 @@ class DRSModel:
             "drs_Level": self.drs_Level,
             "drs_Timer": self.drs_Timer,
             "drs_RateConfigurationNumber": self.drs_RateConfigurationNumber,
+            "TNOW": self.TNOW,
             "min": min,
             "max": max,
             "MN": min,
@@ -677,3 +678,28 @@ class DRSModel:
 
         # Assign the new rate configuration
         self.drs_RateConfigurationNumber = new_rate_config
+
+    def run(self, max_iterations: int = 100000):
+        """
+        Main execution loop for the DRS model.
+        Cycles through subsystems until the terminating condition is met.
+
+        Args:
+            max_iterations: Safety break to prevent infinite loops.
+        """
+        self.initialize_simulation()
+
+        iterations = 0
+        while not self.evaluate_expression(self.confExString_TerminatingCondition):
+            if iterations >= max_iterations:
+                print(
+                    f"Warning: Simulation reached max iterations ({max_iterations}). Breaking loop."
+                )
+                break
+
+            self.characterize_thresholds()
+            self.advance_simulation()
+            self.execute_assignments()
+            self.update_rate_configuration()
+
+            iterations += 1

@@ -131,3 +131,31 @@ def test_update_rate_configuration(model):
     model.update_rate_configuration()
 
     assert model.drs_RateConfigurationNumber == 7
+
+
+def test_full_simulation_run(model):
+    """
+    Verify that run() correctly exits and advances time.
+    Scenario: A timer reaches 100, which sets the Terminating Condition to 1.
+    """
+    # 1. Setup mock configuration
+    # Timer 1 starts at 0, rate is 1.0. Configuration 0.
+    model.confExString_InitialRateConfigurationNumber = "0"
+    model.confExString_InitialTimerValue[0] = "0"
+    model.confExString_TimerRate[0][0] = "1.0"
+
+    # Threshold for Timer 1: Upper is 100
+    model.confExString_UpperTimerThreshold[0][0] = "100"
+
+    # When Timer 1 hits 100, stay in config 0
+    model.confExString_UpperTimerResultantRateConfiguration[0][0] = "0"
+
+    # Terminating condition: Timer 1 >= 100
+    model.confExString_TerminatingCondition = "drs_Timer(1) >= 100"
+
+    # 2. Run simulation
+    model.run(max_iterations=100)
+
+    # 3. Assertions
+    assert model.TNOW == 100.0
+    assert model.drs_Timer[0] == 100.0
