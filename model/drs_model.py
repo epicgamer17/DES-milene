@@ -289,3 +289,66 @@ class DRSModel:
     @TimeInShutdown_Timer.setter
     def TimeInShutdown_Timer(self, value: float):
         self.drs_Timer[8] = value
+
+    def load_configuration(self, config_dict: dict):
+        """
+        Populates configuration expression strings from an external dictionary or JSON.
+
+        Args:
+            config_dict: A dictionary containing configuration strings.
+        """
+        for key, value in config_dict.items():
+            if key.startswith("confExString_") and hasattr(self, key):
+                # Basic shape validation for 2D lists (matrices)
+                if (
+                    isinstance(value, list)
+                    and len(value) > 0
+                    and isinstance(value[0], list)
+                ):
+                    if "Level" in key:
+                        assert (
+                            len(value) == self.dim_NumberOfLevels
+                        ), f"Outer dimension mismatch for {key}: expected {self.dim_NumberOfLevels}, got {len(value)}"
+                        assert (
+                            len(value[0]) == self.dim_NumberOfRateConfigurations
+                        ), f"Inner dimension mismatch for {key}: expected {self.dim_NumberOfRateConfigurations}, got {len(value[0])}"
+                    elif "Timer" in key:
+                        assert (
+                            len(value) == self.dim_NumberOfTimers
+                        ), f"Outer dimension mismatch for {key}: expected {self.dim_NumberOfTimers}, got {len(value)}"
+                        assert (
+                            len(value[0]) == self.dim_NumberOfRateConfigurations
+                        ), f"Inner dimension mismatch for {key}: expected {self.dim_NumberOfRateConfigurations}, got {len(value[0])}"
+                    elif key == "confExString_AssignmentSequence":
+                        assert (
+                            len(value) == self.dim_MaxLengthOfAssignmentSequence
+                        ), f"Outer dimension mismatch for {key}: expected {self.dim_MaxLengthOfAssignmentSequence}, got {len(value)}"
+                        assert (
+                            len(value[0])
+                            == self.dim_NumberOfAssignmentSequenceAddresses
+                        ), f"Inner dimension mismatch for {key}: expected {self.dim_NumberOfAssignmentSequenceAddresses}, got {len(value[0])}"
+
+                # Basic shape validation for 1D lists (vectors)
+                elif isinstance(value, list):
+                    if key == "confExString_InitialLevelValue":
+                        assert (
+                            len(value) == self.dim_NumberOfLevels
+                        ), f"Dimension mismatch for {key}: expected {self.dim_NumberOfLevels}, got {len(value)}"
+                    elif key == "confExString_InitialTimerValue":
+                        assert (
+                            len(value) == self.dim_NumberOfTimers
+                        ), f"Dimension mismatch for {key}: expected {self.dim_NumberOfTimers}, got {len(value)}"
+                    elif (
+                        key
+                        == "confExString_InitialDiscretelyDynamicalNumericalVariableValue"
+                    ):
+                        assert (
+                            len(value)
+                            == self.dim_NumberOfDiscretelyDynamicalNumericalVariables
+                        ), f"Dimension mismatch for {key}: expected {self.dim_NumberOfDiscretelyDynamicalNumericalVariables}, got {len(value)}"
+                    elif key == "confExString_InitialCategoricalVariableValue":
+                        assert (
+                            len(value) == self.dim_NumberOfCategoricalVariables
+                        ), f"Dimension mismatch for {key}: expected {self.dim_NumberOfCategoricalVariables}, got {len(value)}"
+
+                setattr(self, key, value)

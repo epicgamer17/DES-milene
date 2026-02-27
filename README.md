@@ -12,16 +12,61 @@ The simulation is built around the `DRSModel`, which manages the state of the sy
 - **Categorical Variables (`drs_CategoricalVariable`)**: Discrete labels or status strings.
 - **Configuration Expressions (`confExString_*`)**: Dynamic formulas (as strings) that dictate rates, thresholds, and initial values based on the current "Rate Configuration".
 
-### Pythonic Aliases
-To make the code more readable and aligned with the domain (mining), the `DRSModel` uses Python properties to alias raw array indices to meaningful names:
-- `model.OreExtraction_Level` maps to `model.drs_Level[0]`
-- `model.TimeInShutdown_Timer` maps to `model.drs_Timer[8]`
+## Model Configuration & Inputs
 
-### Dynamic Formulas
-The `DRSModel` includes extensive support for configuration expression strings, which allow the simulation logic to be defined dynamically:
-- **Scalars**: Terminating conditions and initial rate configurations.
-- **Vectors**: Initial values for levels, timers, and variables.
-- **Matrices**: Level-specific and timer-specific rates, thresholds, and assignment sequences, indexed by "Rate Configuration".
+### Model Dimensions
+When instantiating `DRSModel`, you define the size of the simulation state. These dimensions determine the shapes of all underlying arrays and matrices.
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `dim_NumberOfLevels` | `int` | 5 | Number of continuous level variables. |
+| `dim_NumberOfTimers` | `int` | 9 | Number of timer variables. |
+| `dim_NumberOfDiscretelyDynamicalNumericalVariables` | `int` | 3 | Number of discrete numerical variables. |
+| `dim_NumberOfCategoricalVariables` | `int` | 1 | Number of categorical variables. |
+| `dim_NumberOfRateConfigurations` | `int` | 7 | Number of different rate configurations (e.g., Operating Modes). |
+| `dim_NumberOfAssignmentSequenceAddresses` | `int` | 6 | Number of assignment addresses per sequence. |
+| `dim_MaxLengthOfAssignmentSequence` | `int` | 7 | Maximum length of an assignment sequence. |
+
+### Configuration Loading
+The `load_configuration(config_dict)` method allows populating the `confExString_` attributes from an external source. It performs shape validation to ensure the input data matches the model's dimensions.
+
+```python
+model = DRSModel(dim_NumberOfLevels=2, dim_NumberOfRateConfigurations=3)
+config_data = {
+    "confExString_LevelRate": [
+        ["0.5", "0.8", "0.0"], # Rates for Level 0 across 3 configurations
+        ["0.2", "0.4", "0.1"]  # Rates for Level 1 across 3 configurations
+    ],
+    "confExString_TerminatingCondition": "time > 3600"
+}
+model.load_configuration(config_data)
+```
+
+## Data Formatting Guide
+
+Whether loading from JSON or Excel, the data must follow these structures:
+
+### Scalars (Strings)
+Attributes like `confExString_TerminatingCondition` expect a single string.
+
+### Vectors (1D Lists of Strings)
+Initial value arrays must have a length equal to the corresponding dimension.
+- **Example**: `confExString_InitialLevelValue` should be `["val1", "val2", ...]` with length `dim_NumberOfLevels`.
+
+### Matrices (2D Lists of Strings)
+Most configuration strings are stored in matrices where rows correspond to a variable index and columns correspond to a **Rate Configuration**.
+- **Format**: `List[List[str]]`
+- **Shape**: `[VariableDimension][dim_NumberOfRateConfigurations]`
+- **Example (`confExString_LevelRate`)**:
+  ```json
+  [
+    ["L0_RC0", "L0_RC1", "L0_RC2"],
+    ["L1_RC0", "L1_RC1", "L1_RC2"]
+  ]
+  ```
+
+### Assignment Sequence
+`confExString_AssignmentSequence` has a unique shape: `[dim_MaxLengthOfAssignmentSequence][dim_NumberOfAssignmentSequenceAddresses]`.
 
 ## Installation
 
@@ -29,29 +74,6 @@ Ensure you have Python 3.8+ installed. Install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
-```
-
-*Note: The primary dependency is `numpy`.*
-
-## Expected Usage
-
-You can instantiate the `DRSModel` with default dimensions or provide custom overrides.
-
-```python
-from model.drs_model import DRSModel
-
-# Initialize with default dimensions
-model = DRSModel()
-
-# Access and modify state using domain-specific aliases
-model.OreExtraction_Level = 5000.0
-print(f"Current Ore Extraction: {model.OreExtraction_Level}")
-
-# The underlying NumPy arrays are updated automatically
-print(f"Raw drs_Level[0]: {model.drs_Level[0]}")
-
-# Custom initialization
-custom_model = DRSModel(dim_NumberOfLevels=10, dim_NumberOfTimers=5)
 ```
 
 ## Running Tests
@@ -73,3 +95,4 @@ pytest tests/test_drs_model.py
 ### Coverage
 - `tests/test_drs_init.py`: Verifies correct initialization of all state vectors, scalar variables, and the complex configuration expression string matrices.
 - `tests/test_drs_aliases.py`: Ensures that properties correctly map to and mutate the underlying NumPy arrays.
+- `tests/test_drs_config.py`: Validates the `load_configuration` method and its shape validation logic.
