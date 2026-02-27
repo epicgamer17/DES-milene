@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 
 class DRSModel:
@@ -352,3 +353,54 @@ class DRSModel:
                         ), f"Dimension mismatch for {key}: expected {self.dim_NumberOfCategoricalVariables}, got {len(value)}"
 
                 setattr(self, key, value)
+
+    def evaluate_expression(self, expression_string: str) -> float:
+        """
+        Parses and executes Arena formula strings against the simulation state.
+
+        Args:
+            expression_string: The Arena-formatted formula string.
+
+        Returns:
+            The evaluated result as a float.
+        """
+        if not expression_string or expression_string.strip() == "0":
+            return 0.0
+
+        processed = expression_string.strip()
+
+        # Remove Eval(...) wrapper if it exists
+        eval_match = re.match(r"^Eval\((.*)\)$", processed, re.IGNORECASE)
+        if eval_match:
+            processed = eval_match.group(1)
+
+        # Translate Arena functions MN/MX to min/max
+        processed = processed.replace("MN(", "min(").replace("MX(", "max(")
+
+        # Convert 1-based parentheses indexing to 0-based bracket indexing
+        # Patterns like drs_Level(X) -> drs_Level[X-1]
+        def replace_index(match):
+            prefix = match.group(1)
+            index = int(match.group(2))
+            return f"{prefix}[{index - 1}]"
+
+        processed = re.sub(r"(drs_Level|drs_Timer)\((\d+)\)", replace_index, processed)
+
+        # Local namespace for safe evaluation
+        local_namespace = {
+            "drs_Level": self.drs_Level,
+            "drs_Timer": self.drs_Timer,
+            "drs_RateConfigurationNumber": self.drs_RateConfigurationNumber,
+            "min": min,
+            "max": max,
+            "MN": min,
+            "MX": max,
+        }
+
+        try:
+            # Safely evaluate the expression
+            result = eval(processed, {"__builtins__": None}, local_namespace)
+            return float(result)
+        except Exception as e:
+            # In a real scenario, we might want more specific error handling or logging
+            raise ValueError(f"Error evaluating expression '{expression_string}': {e}")

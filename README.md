@@ -41,6 +41,24 @@ config_data = {
 }
 model.load_configuration(config_data)
 ```
+ 
+## Expression Evaluation Engine
+ 
+The `DRSModel` includes a robust engine for evaluating Arena-formatted expression strings against the simulation state. The `evaluate_expression(expression_string)` method handles preprocessing, indexing conversion, and safe execution.
+ 
+### Features
+- **Arena Syntax Support**: Automatically handles `Eval(...)` wrappers and translates `MN`/`MX` functions to Python's `min`/`max`.
+- **1-Based Indexing Conversion**: Translates Arena-style 1-based indexing for Levels and Timers (e.g., `drs_Level(1)`) into Python's 0-based indexing (e.g., `drs_Level[0]`).
+- **Safe Evaluation**: Executes expressions in a restricted namespace with access only to specific state vectors (`drs_Level`, `drs_Timer`), scalar variables (`drs_RateConfigurationNumber`), and mathematical functions.
+ 
+### Example
+```python
+model.drs_Level[0] = 50.0
+model.drs_Timer[4] = 10.0
+# Arena formula: Eval(MX(drs_Level(1), drs_Timer(5) * 6))
+result = model.evaluate_expression("Eval(MX(drs_Level(1), drs_Timer(5) * 6))")
+# Evaluates MX(50.0, 10.0 * 6) -> 60.0
+```
 
 ## Data Formatting Guide
 
@@ -96,3 +114,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_init.py`: Verifies correct initialization of all state vectors, scalar variables, and the complex configuration expression string matrices.
 - `tests/test_drs_aliases.py`: Ensures that properties correctly map to and mutate the underlying NumPy arrays.
 - `tests/test_drs_config.py`: Validates the `load_configuration` method and its shape validation logic.
+- `tests/test_drs_expressions.py`: Tests the Arena-to-Python expression translation and safe evaluation engine.
