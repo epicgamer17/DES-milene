@@ -115,3 +115,4 @@ pytest tests/test_drs_model.py
 - `tests/test_drs_aliases.py`: Ensures that properties correctly map to and mutate the underlying NumPy arrays.
 - `tests/test_drs_config.py`: Validates the `load_configuration` method and its shape validation logic.
 - `tests/test_drs_expressions.py`: Tests the Arena-to-Python expression translation and safe evaluation engine.
+- `tests/test_drs_model.py`: Comprehensive suite verifying matrix initialization, configuration loading, and robust expression evaluation (math, Arena functions, and state variables).

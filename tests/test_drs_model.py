@@ -57,3 +57,37 @@ def test_array_persistence(model):
     # Assert that the value was indeed changed in the original array
     assert original_level_array[2] == 123.4
     assert original_timer_array[8] == 56.7
+
+
+def test_matrix_initialization(model):
+    """Verify that confExString_LevelRate is initialized correctly."""
+    assert isinstance(model.confExString_LevelRate, list)
+    assert len(model.confExString_LevelRate) == model.dim_NumberOfLevels
+    assert all(isinstance(row, list) for row in model.confExString_LevelRate)
+    assert len(model.confExString_LevelRate[0]) == model.dim_NumberOfRateConfigurations
+
+
+def test_load_configuration(model):
+    """Verify that load_configuration correctly assigns data."""
+    mock_matrix = [["1.0"] * 7 for _ in range(5)]
+    mock_data = {"confExString_LevelRate": mock_matrix}
+    model.load_configuration(mock_data)
+    assert model.confExString_LevelRate == mock_matrix
+
+
+def test_evaluate_basic_math(model):
+    """Verify basic math expression evaluation."""
+    assert model.evaluate_expression("5 + 5") == 10.0
+    assert model.evaluate_expression("10 * 2.5") == 25.0
+
+
+def test_evaluate_arena_functions(model):
+    """Verify Arena function translations (MN, MX)."""
+    assert model.evaluate_expression("MN(10, 5)") == 5.0
+    assert model.evaluate_expression("MX(10, 5)") == 10.0
+
+
+def test_evaluate_state_variables(model):
+    """Verify translation of 1-based Arena state variables to 0-based indexing."""
+    model.drs_Level[0] = 50.0
+    assert model.evaluate_expression("drs_Level(1) * 2") == 100.0
