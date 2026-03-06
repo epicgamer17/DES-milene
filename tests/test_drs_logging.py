@@ -10,104 +10,57 @@ def drs_model():
     return model
 
 
-def test_data_logging_during_advance(drs_model):
+def test_data_logging_during_run(drs_model):
     """
-    Test that advance_simulation correctly logs state before and after updates.
+    Test that the run() loop correctly logs state at initialization, before advance, and after update.
     """
-    # Setup initial state
-    drs_model.TNOW = 10.0
-    drs_model.OreStock_Level = 1000.0
-    drs_model.Ore1Stock_Level = 500.0
-    drs_model.Ore2Stock_Level = 500.0
-    drs_model.drs_RateConfigurationNumber = 1
+    # Setup initial state for a single-step run
+    drs_model.confExString_InitialRateConfigurationNumber = "1"
+    drs_model.confExString_InitialLevelValue = ["0", "0", "1000", "500", "500"]
+    drs_model.confExString_LevelRate[2][0] = "100"  # OreStock rate
+    drs_model.confExString_LevelRate[3][0] = "50"  # Ore1Stock rate
+    drs_model.confExString_LevelRate[4][0] = "50"  # Ore2Stock rate
 
-    # Mock duration and rates
-    drs_model.drs_DurationUntilThresholdCrossing = 5.0
-    drs_model.confExString_LevelRate[2][1] = "100"  # OreStock rate
-    drs_model.confExString_LevelRate[3][1] = "50"  # Ore1Stock rate
-    drs_model.confExString_LevelRate[4][1] = "50"  # Ore2Stock rate
-
-    # Mock threshold crossing to avoid address evaluation errors if any
-    drs_model.drs_ThresholdCrossingLevelOrTimerNumber = 0
-    drs_model.drs_ThresholdIsCrossedByTimer = 0
-    drs_model.drs_DirectionOfThresholdCrossing = 1
-    drs_model.confExString_UpperLevelAssignmentAddress[0][1] = "0"
-
-    # Verify history is initially empty (or contains initialization if we added it there,
-    # but my implementation only appends in advance_simulation)
-    assert len(drs_model.history_time) == 0
+    # Threshold: Timer 1 reaches 5
+    drs_model.confExString_InitialTimerValue[0] = "0"
+    drs_model.confExString_TimerRate[0][0] = "1"
+    drs_model.confExString_UpperTimerThreshold[0][0] = "5"
+    drs_model.confExString_TerminatingCondition = "drs_Timer(1) >= 5"
 
     # Act
-    drs_model.advance_simulation()
+    drs_model.run(max_iterations=1)
 
     # Assert
-    # Should have 2 entries: before and after
-    assert len(drs_model.history_time) == 2
-    assert len(drs_model.history_rate_config) == 2
-    assert len(drs_model.history_ore_levels) == 2
+    # 1. Initial State (at initialization)
+    # 2. Before Advance (at iteration start)
+    # 3. After Update (at iteration end)
+    assert len(drs_model.history_time) == 3
 
-    # Before state
-    assert drs_model.history_time[0] == 10.0
-    assert drs_model.history_rate_config[0] == 1
+    # Initial state (TNOW=0)
+    assert drs_model.history_time[0] == 0.0
     assert drs_model.history_ore_levels[0] == (1000.0, 500.0, 500.0)
 
-    # After state
-    assert drs_model.history_time[1] == 15.0
-    assert drs_model.history_rate_config[1] == 1
-    assert drs_model.history_ore_levels[1] == (1500.0, 750.0, 750.0)
+    # Before advance (TNOW=0)
+    assert drs_model.history_time[1] == 0.0
+
+    # After update (TNOW=5)
+    assert drs_model.history_time[2] == 5.0
+    assert drs_model.history_ore_levels[2] == (1500.0, 750.0, 750.0)
 
 
-def test_history_logging():
+def test_log_history_standalone():
     """
-    Call advance_simulation once with a mock duration of 5.
-    Assert that the history_time list contains [0.0, 5.0] and history_rate_config contains two identical entries.
+    Verify the log_history helper appends data correctly.
     """
     model = DRSModel()
-    # Initialize basic configurations to avoid evaluation errors
-    model.confExString_LevelRate = [
-        ["0"] * model.dim_NumberOfRateConfigurations
-        for _ in range(model.dim_NumberOfLevels)
-    ]
-    model.confExString_TimerRate = [
-        ["1"] * model.dim_NumberOfRateConfigurations
-        for _ in range(model.dim_NumberOfTimers)
-    ]
-    model.confExString_LowerLevelAssignmentAddress = [
-        ["0"] * model.dim_NumberOfRateConfigurations
-        for _ in range(model.dim_NumberOfLevels)
-    ]
-    model.confExString_UpperLevelAssignmentAddress = [
-        ["0"] * model.dim_NumberOfRateConfigurations
-        for _ in range(model.dim_NumberOfLevels)
-    ]
-    model.confExString_LowerTimerAssignmentAddress = [
-        ["0"] * model.dim_NumberOfRateConfigurations
-        for _ in range(model.dim_NumberOfTimers)
-    ]
-    model.confExString_UpperTimerAssignmentAddress = [
-        ["0"] * model.dim_NumberOfRateConfigurations
-        for _ in range(model.dim_NumberOfTimers)
-    ]
+    model.TNOW = 20.0
+    model.drs_RateConfigurationNumber = 3
+    model.OreStock_Level = 500
+    model.Ore1Stock_Level = 250
+    model.Ore2Stock_Level = 250
 
-    model.drs_DurationUntilThresholdCrossing = 5.0
-    model.drs_RateConfigurationNumber = 2  # Arbitrary config
+    model.log_history()
 
-    # Mock some ore levels to check history_ore_levels
-    model.OreStock_Level = 1000.0
-    model.Ore1Stock_Level = 600.0
-    model.Ore2Stock_Level = 400.0
-
-    model.advance_simulation()
-
-    # history_time should contain [0.0, 5.0]
-    assert model.history_time == [0.0, 5.0]
-
-    # history_rate_config should contain [2, 2]
-    assert model.history_rate_config == [2, 2]
-
-    # history_ore_levels should contain [(1000.0, 600.0, 400.0), (1000.0, 600.0, 400.0)]
-    # (Since rates were 0)
-    expected_ore = (1000.0, 600.0, 400.0)
-    assert model.history_ore_levels == [expected_ore, expected_ore]
-
-    assert model.TNOW == 5.0
+    assert model.history_time == [20.0]
+    assert model.history_rate_config == [3]
+    assert model.history_ore_levels == [(500.0, 250.0, 250.0)]

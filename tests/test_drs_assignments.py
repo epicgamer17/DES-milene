@@ -22,7 +22,7 @@ def test_execute_assignments_level(drs_model):
     # 1. Setup the assignment sequence
     # Assignment address 1 corresponds to index 0
     # Step 0 of sequence
-    drs_model.confExString_AssignmentSequence[0][0] = "L002=150"
+    drs_model.confExString_AssignmentSequence[0][0] = "L002:150"
     drs_model.current_assignment_address = 1
 
     # 2. Execute assignments
@@ -35,7 +35,7 @@ def test_execute_assignments_level(drs_model):
 def test_execute_assignments_external(drs_model):
     """Mock string 'E001=42'. Verify execute_external_code(42) is called."""
     # 1. Setup the assignment sequence
-    drs_model.confExString_AssignmentSequence[0][0] = "E001=42"
+    drs_model.confExString_AssignmentSequence[0][0] = "E001:42"
     drs_model.current_assignment_address = 1
 
     # 2. Mock execute_external_code and execute assignments
@@ -47,7 +47,7 @@ def test_execute_assignments_external(drs_model):
 
 def test_execute_assignments_numerical(drs_model):
     """Mock an assignment string 'N001=99.5'. Assert drs_DiscretelyDynamicalNumericalVariable[0] becomes 99.5."""
-    drs_model.confExString_AssignmentSequence[0][0] = "N001=99.5"
+    drs_model.confExString_AssignmentSequence[0][0] = "N001:99.5"
     drs_model.current_assignment_address = 1
 
     drs_model.execute_assignments()
@@ -57,7 +57,7 @@ def test_execute_assignments_numerical(drs_model):
 
 def test_execute_assignments_categorical(drs_model):
     """Mock an assignment string 'C001=10'. Assert drs_CategoricalVariable[0] becomes '10.0'."""
-    drs_model.confExString_AssignmentSequence[0][0] = "C001=10"
+    drs_model.confExString_AssignmentSequence[0][0] = "C001:10"
     drs_model.current_assignment_address = 1
 
     drs_model.execute_assignments()
@@ -67,7 +67,7 @@ def test_execute_assignments_categorical(drs_model):
 
 def test_execute_assignments_timer(drs_model):
     """Mock an assignment string 'T003=5.5'. Assert drs_Timer[2] becomes 5.5."""
-    drs_model.confExString_AssignmentSequence[0][0] = "T003=5.5"
+    drs_model.confExString_AssignmentSequence[0][0] = "T003:5.5"
     drs_model.current_assignment_address = 1
 
     drs_model.execute_assignments()
@@ -77,7 +77,7 @@ def test_execute_assignments_timer(drs_model):
 
 def test_execute_assignments_no_address(drs_model):
     """Verify that if current_assignment_address is 0, no changes are made."""
-    drs_model.confExString_AssignmentSequence[0][0] = "L001=100"
+    drs_model.confExString_AssignmentSequence[0][0] = "L001:100"
     drs_model.current_assignment_address = 0
 
     drs_model.execute_assignments()
@@ -87,8 +87,8 @@ def test_execute_assignments_no_address(drs_model):
 
 def test_execute_assignments_multiple_steps(drs_model):
     """Verify that multiple steps in a sequence are executed."""
-    drs_model.confExString_AssignmentSequence[0][0] = "L001=10"
-    drs_model.confExString_AssignmentSequence[0][1] = "L002=20"
+    drs_model.confExString_AssignmentSequence[0][0] = "L001:10"
+    drs_model.confExString_AssignmentSequence[0][1] = "L002:20"
     drs_model.current_assignment_address = 1
 
     drs_model.execute_assignments()

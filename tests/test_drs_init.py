@@ -36,7 +36,7 @@ class TestDRSInitialization(unittest.TestCase):
         )
 
         # Verify scalars
-        self.assertEqual(model.drs_RateConfigurationNumber, 0)
+        self.assertEqual(model.drs_RateConfigurationNumber, 1)
         self.assertEqual(model.drs_TimeOfPreviousDRSUpdate, 0.0)
         self.assertEqual(model.drs_DurationUntilThresholdCrossing, 0.0)
         self.assertEqual(model.drs_ThresholdCrossingLevelOrTimerNumber, 0)
@@ -53,7 +53,7 @@ class TestDRSInitialization(unittest.TestCase):
 
         # Scalars
         self.assertEqual(model.confExString_TerminatingCondition, "")
-        self.assertEqual(model.confExString_InitialRateConfigurationNumber, "0")
+        self.assertEqual(model.confExString_InitialRateConfigurationNumber, "1")
 
         # Vectors
         self.assertEqual(

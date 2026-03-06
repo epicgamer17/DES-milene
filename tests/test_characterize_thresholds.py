@@ -14,7 +14,7 @@ def test_characterize_thresholds_level_drop(drs_model):
     Assert duration is calculated as 8.0 days, CrossedByTimer is 0, Direction is -1.
     """
     drs_model.drs_Level[0] = 100.0
-    drs_model.drs_RateConfigurationNumber = 0
+    drs_model.drs_RateConfigurationNumber = 1
     drs_model.confExString_LevelRate[0][0] = "-10"
     drs_model.confExString_LowerLevelThreshold[0][0] = "20"
 
@@ -34,7 +34,7 @@ def test_characterize_thresholds_timer_rise(drs_model):
     Set Timer 1 to 0, Rate to 1, Upper Threshold to 24. Assert duration is 24.0.
     """
     drs_model.drs_Timer[1] = 0.0
-    drs_model.drs_RateConfigurationNumber = 0
+    drs_model.drs_RateConfigurationNumber = 1
     drs_model.confExString_TimerRate[1][0] = "1"
     drs_model.confExString_UpperTimerThreshold[1][0] = "24"
 

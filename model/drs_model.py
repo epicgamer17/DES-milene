@@ -71,7 +71,7 @@ class DRSModel:
         self.drs_CategoricalVariable = [""] * self.dim_NumberOfCategoricalVariables
 
         # Scalar functional variables
-        self.drs_RateConfigurationNumber = 0
+        self.drs_RateConfigurationNumber = 1
         self.drs_TimeOfPreviousDRSUpdate = 0.0
         self.drs_DurationUntilThresholdCrossing = 0.0
         self.drs_ThresholdCrossingLevelOrTimerNumber = 0
@@ -97,7 +97,7 @@ class DRSModel:
 
         # Configuration Expression Strings - Scalars
         self.confExString_TerminatingCondition = ""
-        self.confExString_InitialRateConfigurationNumber = "0"
+        self.confExString_InitialRateConfigurationNumber = "1"
 
         # Configuration Expression Strings - Vectors
         self.confExString_InitialLevelValue = [""] * self.dim_NumberOfLevels
@@ -406,6 +406,7 @@ class DRSModel:
 
         # 2. Translate Arena Math & Logic to Python
         processed = processed.replace("&&", " and ")
+        processed = processed.replace("||", " or ")
         processed = processed.replace("<>", " != ")
         processed = processed.replace("MN(", "min(").replace("MX(", "max(")
         processed = processed.replace("ABS(", "abs(")
@@ -418,7 +419,11 @@ class DRSModel:
             index = int(match.group(2))
             return f"{prefix}[{index - 1}]"
 
-        processed = re.sub(r"(drs_Level|drs_Timer)\((\d+)\)", replace_index, processed)
+        processed = re.sub(
+            r"(drs_Level|drs_Timer|drs_DiscretelyDynamicalNumericalVariable|drs_CategoricalVariable)\((\d+)\)",
+            replace_index,
+            processed,
+        )
         processed = re.sub(
             r"(parameterVector_GeostatisticalModelParameters)\((\d+)\)",
             replace_index,
@@ -449,7 +454,6 @@ class DRSModel:
                     "MassOfCurrentParcel",
                     "PercentageOfOre2InCurrentParcel",
                     "NextParcelIsNewFacies",
-                    "NextParcelIsNewFacie",
                 ]
             ):
                 local_namespace[attr] = getattr(self, attr)
@@ -458,9 +462,11 @@ class DRSModel:
             # Safely evaluate the expression
             result = eval(processed, {"__builtins__": None}, local_namespace)
 
-            # Handle booleans returned by logic gates (e.g. OreStock > Target)
+            # Handle booleans and strings
             if isinstance(result, bool):
                 return 1.0 if result else 0.0
+            if isinstance(result, str):
+                return result
 
             return float(result)
         except Exception as e:
@@ -495,25 +501,21 @@ class DRSModel:
 
         # Loop through discrete numerical variables
         for i in range(self.dim_NumberOfDiscretelyDynamicalNumericalVariables):
-            self.drs_DiscretelyDynamicalNumericalVariable[i] = self.evaluate_expression(
-                self.confExString_InitialDiscretelyDynamicalNumericalVariableValue[i]
+            self.drs_DiscretelyDynamicalNumericalVariable[i] = float(
+                self.evaluate_expression(
+                    self.confExString_InitialDiscretelyDynamicalNumericalVariableValue[
+                        i
+                    ]
+                )
             )
 
         # Loop through categorical variables
-        # Note: evaluate_expression currently returns float, but categorical might need strings.
-        # For now, we follow the instruction to repeat the evaluation pattern.
         for i in range(self.dim_NumberOfCategoricalVariables):
-            # evaluate_expression returns float, but CategoricalVariable is a list of strings
-            # We'll need to decide if we want a separate evaluate_string_expression or just str() the result.
-            # Given the instruction "Repeat this loop evaluation for... drs_CategoricalVariable",
-            # and that categorical values are strings, we might need to handle this.
-            # However, the prompt says "Repeat this loop evaluation ... using their respective Initial... string arrays".
-            # If evaluate_expression is strictly numeric, we might have an issue here.
-            # Let's check evaluate_expression again. It returns float(result).
-            val = self.evaluate_expression(
-                self.confExString_InitialCategoricalVariableValue[i]
-            )
-            self.drs_CategoricalVariable[i] = str(val)
+            expr = self.confExString_InitialCategoricalVariableValue[i]
+            if not expr or expr.strip() == "":
+                self.drs_CategoricalVariable[i] = ""
+            else:
+                self.drs_CategoricalVariable[i] = str(self.evaluate_expression(expr))
 
     def characterize_thresholds(self):
         """
@@ -521,7 +523,7 @@ class DRSModel:
         against their respective thresholds based on current rates.
         """
         self.drs_DurationUntilThresholdCrossing = 99999.0
-        rate_config = self.drs_RateConfigurationNumber
+        rate_config = self.drs_RateConfigurationNumber - 1
 
         # Step 1: Calculate Minimum Duration for Levels
         for i in range(self.dim_NumberOfLevels):
@@ -546,7 +548,10 @@ class DRSModel:
                 time_to_cross = (upper_threshold - self.drs_Level[i]) / rate
                 direction = 1
 
-            if time_to_cross < self.drs_DurationUntilThresholdCrossing:
+            if (
+                time_to_cross < self.drs_DurationUntilThresholdCrossing
+                and time_to_cross > 1e-9
+            ):
                 self.drs_DurationUntilThresholdCrossing = time_to_cross
                 self.drs_ThresholdCrossingLevelOrTimerNumber = i
                 self.drs_ThresholdIsCrossedByTimer = 0
@@ -575,7 +580,10 @@ class DRSModel:
                 time_to_cross = (upper_threshold - self.drs_Timer[i]) / rate
                 direction = 1
 
-            if time_to_cross < self.drs_DurationUntilThresholdCrossing:
+            if (
+                time_to_cross < self.drs_DurationUntilThresholdCrossing
+                and time_to_cross > 1e-9
+            ):
                 self.drs_DurationUntilThresholdCrossing = time_to_cross
                 self.drs_ThresholdCrossingLevelOrTimerNumber = i
                 self.drs_ThresholdIsCrossedByTimer = 1
@@ -587,17 +595,10 @@ class DRSModel:
         """
         duration = max(self.drs_DurationUntilThresholdCrossing, 0.0)
 
-        # Log before update
-        self.history_time.append(self.TNOW)
-        self.history_rate_config.append(self.drs_RateConfigurationNumber)
-        self.history_ore_levels.append(
-            (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
-        )
-
         # Advance global clock
         self.TNOW += duration
 
-        rate_config = self.drs_RateConfigurationNumber
+        rate_config = self.drs_RateConfigurationNumber - 1
 
         # Update Levels
         for i in range(self.dim_NumberOfLevels):
@@ -642,12 +643,7 @@ class DRSModel:
 
         self.current_assignment_address = int(self.evaluate_expression(addr_expr))
 
-        # Log after update
-        self.history_time.append(self.TNOW)
-        self.history_rate_config.append(self.drs_RateConfigurationNumber)
-        self.history_ore_levels.append(
-            (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
-        )
+        self.current_assignment_address = int(self.evaluate_expression(addr_expr))
 
     def execute_assignments(self):
         """
@@ -668,23 +664,17 @@ class DRSModel:
                 continue
 
             assignment_str = assignment_str.strip()
-            # Extract type identifier: 'L', 'T', 'N', 'C', or 'E'
-            type_id = assignment_str[0].upper()
-
-            # Extract 1-based target index (indices 1 to 3)
-            # E.g., "L002=150" -> index "002" -> 2
-            try:
-                target_idx_1based = int(assignment_str[1:4])
-            except (ValueError, IndexError):
-                # If the string doesn't follow the "Xnnn=" format strictly, we might need more robust parsing.
-                # But following instructions for extraction indices 1 to 3.
+            # Match the assignment string: TypeIdentifier, index, and expression
+            # Example: "L002:150"
+            match = re.match(r"^([LTNCE])(\d+):(.*)$", assignment_str)
+            if not match:
                 continue
 
-            target_idx = target_idx_1based - 1  # 0-based
+            type_id = match.group(1).upper()
+            target_idx_1based = int(match.group(2))
+            expression = match.group(3).strip()
 
-            # Extract the expression (indices 5 onwards)
-            # E.g., "L002=150" -> "=150" is at index 4 onwards, expression starts at 5
-            expression = assignment_str[5:]
+            target_idx = target_idx_1based - 1  # 0-based
 
             if type_id == "E":
                 # For 'E', cast expression to int and execute external code
@@ -730,7 +720,7 @@ class DRSModel:
         Shifts the system into its new state (rate configuration) based on the threshold crossed.
         """
         idx = self.drs_ThresholdCrossingLevelOrTimerNumber
-        current_rate_config = self.drs_RateConfigurationNumber
+        current_rate_config = self.drs_RateConfigurationNumber - 1
         direction = self.drs_DirectionOfThresholdCrossing
 
         if self.drs_ThresholdIsCrossedByTimer == 0:  # Level
@@ -748,8 +738,9 @@ class DRSModel:
         expr = matrix[idx][current_rate_config]
         new_rate_config = int(self.evaluate_expression(expr))
 
-        # Assign the new rate configuration
-        self.drs_RateConfigurationNumber = new_rate_config
+        # Assign the new rate configuration only if it's not 0
+        if new_rate_config != 0:
+            self.drs_RateConfigurationNumber = new_rate_config
 
     def run(self, max_iterations: int = 100000):
         """
@@ -761,6 +752,9 @@ class DRSModel:
         """
         self.initialize_simulation()
 
+        # Log Initial State
+        self.log_history()
+
         iterations = 0
         while not self.evaluate_expression(self.confExString_TerminatingCondition):
             if iterations >= max_iterations:
@@ -770,11 +764,21 @@ class DRSModel:
                 break
 
             self.characterize_thresholds()
+
+            # Log state right before time advances (creates the vertical "step" in the plot)
+            self.log_history()
+
             self.advance_simulation()
             self.execute_assignments()
             self.update_rate_configuration()
 
+            # Log state right after discrete events resolve
+            self.log_history()
+
             iterations += 1
+
+            if iterations % 100 == 0:
+                print(f"Iteration {iterations}: TNOW = {self.TNOW:.2f}")
 
     def calculate_statistics(self) -> OutputStatistics:
         """
@@ -794,52 +798,53 @@ class DRSModel:
 
         active_time = total_time - self.TimeInShutdown_Timer
 
-        # Safeguard logic
-        if total_time == 0:
-            return OutputStatistics(
-                total_time=0.0,
-                active_time=0.0,
-                PortionOfTimeInModeA=0.0,
-                PortionOfTimeInModeAContingency=0.0,
-                PortionOfTimeInModeAMineSurging=0.0,
-                PortionOfTimeInModeB=0.0,
-                PortionOfTimeInModeBContingency=0.0,
-                PortionOfTimeInModeBMineSurging=0.0,
-                PortionOfTimeInShutdown=0.0,
-                Throughput=0.0,
-            )
-
-        # Calculate Portions
-        portions = {
-            "pA": self.TimeInModeA_Timer / total_time,
-            "pAC": self.TimeInModeAContingency_Timer / total_time,
-            "pAMS": self.TimeInModeAMineSurging_Timer / total_time,
-            "pB": self.TimeInModeB_Timer / total_time,
-            "pBC": self.TimeInModeBContingency_Timer / total_time,
-            "pBMS": self.TimeInModeBMineSurging_Timer / total_time,
-            "pS": self.TimeInShutdown_Timer / total_time,
-        }
-
-        # Calculate Throughput
-        if active_time == 0:
-            throughput = 0.0
-        else:
-            throughput = (
-                self.OreExtraction_Level
-                - self.parameter_OreToBeExtractedDuringWarmingPeriod
-            ) / active_time
-
         return OutputStatistics(
             total_time=total_time,
             active_time=active_time,
-            PortionOfTimeInModeA=portions["pA"],
-            PortionOfTimeInModeAContingency=portions["pAC"],
-            PortionOfTimeInModeAMineSurging=portions["pAMS"],
-            PortionOfTimeInModeB=portions["pB"],
-            PortionOfTimeInModeBContingency=portions["pBC"],
-            PortionOfTimeInModeBMineSurging=portions["pBMS"],
-            PortionOfTimeInShutdown=portions["pS"],
-            Throughput=throughput,
+            PortionOfTimeInModeA=(
+                self.TimeInModeA_Timer / total_time if total_time > 0 else 0.0
+            ),
+            PortionOfTimeInModeAContingency=(
+                self.TimeInModeAContingency_Timer / total_time
+                if total_time > 0
+                else 0.0
+            ),
+            PortionOfTimeInModeAMineSurging=(
+                self.TimeInModeAMineSurging_Timer / total_time
+                if total_time > 0
+                else 0.0
+            ),
+            PortionOfTimeInModeB=(
+                self.TimeInModeB_Timer / total_time if total_time > 0 else 0.0
+            ),
+            PortionOfTimeInModeBContingency=(
+                self.TimeInModeBContingency_Timer / total_time
+                if total_time > 0
+                else 0.0
+            ),
+            PortionOfTimeInModeBMineSurging=(
+                self.TimeInModeBMineSurging_Timer / total_time
+                if total_time > 0
+                else 0.0
+            ),
+            PortionOfTimeInShutdown=(
+                self.TimeInShutdown_Timer / total_time if total_time > 0 else 0.0
+            ),
+            Throughput=(
+                (self.Ore1Stock_Level + self.Ore2Stock_Level) / total_time
+                if total_time > 0
+                else 0.0
+            ),
+        )
+
+    def log_history(self):
+        """
+        Appends current time, rate configuration, and ore levels to history logs.
+        """
+        self.history_time.append(self.TNOW)
+        self.history_rate_config.append(self.drs_RateConfigurationNumber)
+        self.history_ore_levels.append(
+            (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
         )
 
     def plot_results(self):

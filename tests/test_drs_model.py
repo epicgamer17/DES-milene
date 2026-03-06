@@ -123,10 +123,7 @@ def test_update_rate_configuration(model):
     model.drs_ThresholdIsCrossedByTimer = 0  # Level
     model.drs_DirectionOfThresholdCrossing = -1  # Lower
     model.drs_RateConfigurationNumber = 2  # Current configuration
-
-    # Mock the resultant rate configuration for this crossing
-    # Matrix: LowerLevelResultantRateConfiguration[0][2] = "7"
-    model.confExString_LowerLevelResultantRateConfiguration[0][2] = "7"
+    model.confExString_LowerLevelResultantRateConfiguration[0][1] = "7"
 
     model.update_rate_configuration()
 
@@ -140,7 +137,7 @@ def test_full_simulation_run(model):
     """
     # 1. Setup mock configuration
     # Timer 1 starts at 0, rate is 1.0. Configuration 0.
-    model.confExString_InitialRateConfigurationNumber = "0"
+    model.confExString_InitialRateConfigurationNumber = "1"
     model.confExString_InitialTimerValue[0] = "0"
     model.confExString_TimerRate[0][0] = "1.0"
 

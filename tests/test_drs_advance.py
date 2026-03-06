@@ -16,7 +16,7 @@ def test_advance_simulation(drs_model):
     drs_model.TNOW = 0.0
     drs_model.drs_DurationUntilThresholdCrossing = 5.0
     drs_model.drs_Level[0] = 50.0
-    drs_model.drs_RateConfigurationNumber = 0
+    drs_model.drs_RateConfigurationNumber = 1
     drs_model.confExString_LevelRate[0][0] = "2"
 
     # We also need to set some crossing info to test assignment address calculation
@@ -41,7 +41,7 @@ def test_advance_simulation_timer(drs_model):
     drs_model.TNOW = 10.0
     drs_model.drs_DurationUntilThresholdCrossing = 2.0
     drs_model.drs_Timer[1] = 5.0
-    drs_model.drs_RateConfigurationNumber = 0
+    drs_model.drs_RateConfigurationNumber = 1
     drs_model.confExString_TimerRate[1][0] = "1"
 
     # Timer crossing info
