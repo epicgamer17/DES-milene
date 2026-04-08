@@ -83,6 +83,11 @@ class DRSModel:
         self.history_time = []
         self.history_rate_config = []
         self.history_ore_levels = []
+        self.history_parcel_ratios = []  # Added to track Feed Control goal targets
+        self.history_feed_control_active = []
+
+        # Activity Flags
+        self.feed_control_triggered = False
 
         # Unpack external parameters if provided
         if parameters is not None:
@@ -711,18 +716,24 @@ class DRSModel:
                 total_stock = max(self.Ore1Stock_Level + self.Ore2Stock_Level, 1.0)
                 ore2_ratio = self.Ore2Stock_Level / total_stock
 
-                # If Ore 2 makes up > 40% of the stock, we have too much!
-                if ore2_ratio > 0.40:
+                # If Ore 2 makes up >= 40% of the stock, we have too much!
+                if ore2_ratio >= 0.40:
                     # Force the next parcel to have 2% less Ore 2
+                    old_percentage = self.PercentageOfOre2InCurrentParcel
                     self.PercentageOfOre2InCurrentParcel = max(
-                        self.PercentageOfOre2InCurrentParcel - 2.0, 0.0
+                        self.PercentageOfOre2InCurrentParcel - 10.0, 0.0
                     )
+                    if self.PercentageOfOre2InCurrentParcel != old_percentage:
+                        self.feed_control_triggered = True
 
-                # If Ore 2 makes up < 20% of the stock, we need more!
-                elif ore2_ratio < 0.20:
+                # If Ore 2 makes up <= 20% of the stock, we need more!
+                elif ore2_ratio <= 0.20:
+                    old_percentage = self.PercentageOfOre2InCurrentParcel
                     self.PercentageOfOre2InCurrentParcel = min(
-                        self.PercentageOfOre2InCurrentParcel + 2.0, 100.0
+                        self.PercentageOfOre2InCurrentParcel + 10.0, 100.0
                     )
+                    if self.PercentageOfOre2InCurrentParcel != old_percentage:
+                        self.feed_control_triggered = True
 
     def update_rate_configuration(self):
         """
@@ -768,6 +779,14 @@ class DRSModel:
             self.history_ore_levels.append(
                 (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
             )
+            # Record the current feed ratio (N002)
+            self.history_parcel_ratios.append(self.PercentageOfOre2InCurrentParcel)
+            self.history_feed_control_active.append(
+                1 if self.feed_control_triggered else 0
+            )
+
+            # Reset triggers after logging
+            self.feed_control_triggered = False
 
         log_state()  # Log Initial State
 
@@ -847,9 +866,7 @@ class DRSModel:
                 self.TimeInShutdown_Timer / total_time if total_time > 0 else 0.0
             ),
             Throughput=(
-                (self.Ore1Stock_Level + self.Ore2Stock_Level) / total_time
-                if total_time > 0
-                else 0.0
+                self.OreExtraction_Level / total_time if total_time > 0 else 0.0
             ),
         )
 
@@ -865,52 +882,168 @@ class DRSModel:
         rate_configs = np.array(self.history_rate_config)
         ore_levels = np.array(self.history_ore_levels)
 
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
+        fig, (ax1, ax3, ax4, ax2) = plt.subplots(4, 1, figsize=(10, 15), sharex=True)
 
         # Plot 1: Modes Plot
-        # Mode A: Y=3 if rate_config in [1, 2, 3] else 0
-        mode_a = np.where(np.isin(rate_configs, [1, 2, 3]), 3, 0)
-        # Mode B: Y=2 if rate_config in [4, 5, 6] else 0
-        mode_b = np.where(np.isin(rate_configs, [4, 5, 6]), 2, 0)
-        # Shutdown: Y=1 if rate_config == 7 else 0
+        # Define Y-offsets for each distinct rate configuration
+        m_a_norm = np.where(rate_configs == 1, 7, 0)
+        m_a_cont = np.where(rate_configs == 2, 6, 0)
+        m_a_surg = np.where(rate_configs == 3, 5, 0)
+        m_b_norm = np.where(rate_configs == 4, 4, 0)
+        m_b_cont = np.where(rate_configs == 5, 3, 0)
+        m_b_surg = np.where(rate_configs == 6, 2, 0)
         shutdown = np.where(rate_configs == 7, 1, 0)
 
-        ax1.step(times, mode_a, where="post", label="Mode A", color="blue")
-        ax1.step(times, mode_b, where="post", label="Mode B", color="orange")
+        ax1.step(times, m_a_norm, where="post", label="Mode A (Normal)", color="blue")
+        ax1.step(
+            times, m_a_cont, where="post", label="Mode A (Contingency)", color="cyan"
+        )
+        ax1.step(
+            times, m_a_surg, where="post", label="Mode A (Surging)", color="royalblue"
+        )
+        ax1.step(times, m_b_norm, where="post", label="Mode B (Normal)", color="orange")
+        ax1.step(
+            times, m_b_cont, where="post", label="Mode B (Contingency)", color="gold"
+        )
+        ax1.step(
+            times, m_b_surg, where="post", label="Mode B (Surging)", color="darkorange"
+        )
         ax1.step(times, shutdown, where="post", label="Shutdown", color="red")
 
-        ax1.set_ylim(0, 4)
-        ax1.set_ylabel("Active Mode")
-        ax1.set_title("Simulation Modes")
-        ax1.legend()
-        ax1.grid(True)
+        ax1.set_ylim(0, 8)
+        ax1.set_yticks([1, 2, 3, 4, 5, 6, 7])
+        ax1.set_yticklabels(
+            ["Shutdown", "B-Surg", "B-Cont", "B-Normal", "A-Surg", "A-Cont", "A-Normal"]
+        )
 
-        # Plot 2: Ore Level Plot
+        ax1.set_ylabel("Production Mode")
+        ax1.set_title("Simulation Modes Timeline")
+        ax1.legend(loc="upper right")
+        ax1.grid(True, alpha=0.3)
+
+        # Plot 2 (Middle): Control Features Status Over Time
+        feed_enabled = getattr(self, "enable_feed_control", False)
+        adaptive_enabled = getattr(self, "parameter_ExtractionGain", 0.0) > 0
+
+        target_kt = (
+            getattr(self, "controlVariable_TargetOreStockLevel", 60000.0) / 1000.0
+        )
+        upper_kt = getattr(self, "controlVariable_StockUpperLimit", 60000.0) / 1000.0
+
+        # Calculate time-series for feature activity
+        # Feed Control: Actual activity recorded in history
+        feed_series = np.array(
+            getattr(self, "history_feed_control_active", np.zeros_like(times))
+        )
+        # Adaptive Extraction: ON if enabled AND in configs 1-3 (Mode A)
+        adaptive_series = np.where(
+            (adaptive_enabled) & (np.isin(rate_configs, [1, 2, 3])), 1, 0
+        )
+
+        ax3.step(
+            times,
+            feed_series + 1.1,
+            where="post",
+            label="Feed Control",
+            color="brown",
+            linewidth=2,
+        )
+        # Add markers for active events to make them visible even if they are instantaneous
+        active_feed = np.where(feed_series == 1)[0]
+        if len(active_feed) > 0:
+            ax3.scatter(
+                times[active_feed],
+                feed_series[active_feed] + 1.1,
+                color="brown",
+                marker="X",
+                s=50,
+                zorder=5,
+            )
+
+        ax3.step(
+            times,
+            adaptive_series + 0.0,
+            where="post",
+            label="Adaptive Extraction",
+            color="purple",
+            linewidth=2,
+        )
+
+        ax3.set_yticks([0.5, 1.6])
+        ax3.set_yticklabels(["Adaptive Ext.", "Feed Control"])
+        ax3.set_ylim(-0.5, 2.5)
+        ax3.set_ylabel("Feature Status")
+        ax3.set_title("Control Strategy Activity (ON/OFF)")
+        ax3.grid(True, alpha=0.3)
+
+        # Plot 4: Ore 2 Ratio Plot (Feed vs Stockpile)
+        parcel_ratios = np.array(
+            getattr(self, "history_parcel_ratios", np.zeros_like(times))
+        )
+
+        # Calculate Stockpile Ratio (%)
+        total_s = ore_levels[:, 1] + ore_levels[:, 2]
+        stock_ratio = (
+            np.divide(
+                ore_levels[:, 2],
+                total_s,
+                out=np.zeros_like(total_s),
+                where=total_s != 0,
+            )
+            * 100
+        )
+
+        ax4.plot(
+            times,
+            parcel_ratios,
+            label="Input Feed % (Parcel)",
+            color="gray",
+            alpha=0.5,
+            linestyle="--",
+        )
+        ax4.plot(
+            times, stock_ratio, label="Actual Stockpile %", color="purple", linewidth=2
+        )
+
+        # Add Control Targets
+        ax4.axhline(
+            40, color="red", linestyle=":", label="Upper Target (40%)", alpha=0.8
+        )
+        ax4.axhline(
+            20, color="red", linestyle=":", label="Lower Target (20%)", alpha=0.8
+        )
+
+        ax4.set_ylim(0, 100)
+        ax4.set_ylabel("Ore 2 Percentage (%)")
+        ax4.set_title("Ore 2 Ratio Management (Targets 20-40%)")
+        ax4.legend(loc="upper right", fontsize="small", ncol=2)
+        ax4.grid(True, alpha=0.3)
+
+        # Plot 3: Ore Level Plot
         # Unpack and divide by 1000 for kilotonnes
         total_ore = ore_levels[:, 0] / 1000.0
         ore1 = ore_levels[:, 1] / 1000.0
         ore2 = ore_levels[:, 2] / 1000.0
 
-        ax2.plot(times, total_ore, label="Total Ore Stockpile Level", color="black")
-        ax2.plot(times, ore1, label="Ore 1 Stockpile Level", color="green")
-        ax2.plot(times, ore2, label="Ore 2 Stockpile Level", color="pink")
+        ax2.plot(
+            times, total_ore, label="Total Ore Level", color="black", linewidth=1.5
+        )
+        ax2.plot(times, ore1, label="Ore 1 Level", color="green", alpha=0.6)
+        ax2.plot(times, ore2, label="Ore 2 Level", color="pink")
 
-        target_kt = self.controlVariable_TargetOreStockLevel / 1000.0
-        upper_kt = getattr(self, "controlVariable_StockUpperLimit", 60000.0) / 1000.0
         lower_kt = getattr(self, "controlVariable_StockLowerLimit", 60000.0) / 1000.0
 
         ax2.axhline(target_kt, color="gray", linestyle="--", alpha=0.7, label="Target")
-        if upper_kt != target_kt:  # Only plot bounds if Hysteresis is active
-            ax2.axhspan(
-                lower_kt, upper_kt, color="yellow", alpha=0.2, label="Control Deadband"
-            )
 
         ax2.set_ylim(0, 80)
         ax2.set_ylabel("Ore Level (kt)")
         ax2.set_xlabel("Time (h)")
-        ax2.set_title("Ore Stockpile Levels")
-        ax2.legend()
-        ax2.grid(True)
+        ax2.set_title("Stockpile Levels")
+        ax2.legend(loc="upper right")
+        ax2.grid(True, alpha=0.3)
 
-        plt.tight_layout()
+        status_text = f"Simulation Summary: Feed Control {'[ON]' if feed_enabled else '[OFF]'} | Adaptive Extraction {'[ON]' if adaptive_enabled else '[OFF]'}"
+        fig.suptitle(status_text, fontsize=12, fontweight="bold")
+
+        plt.tight_layout(rect=[0, 0.03, 1, 0.96])
         plt.show()
