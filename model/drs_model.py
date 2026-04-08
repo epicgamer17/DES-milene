@@ -752,8 +752,15 @@ class DRSModel:
         """
         self.initialize_simulation()
 
-        # Log Initial State
-        self.log_history()
+        # Helper to log history
+        def log_state():
+            self.history_time.append(self.TNOW)
+            self.history_rate_config.append(self.drs_RateConfigurationNumber)
+            self.history_ore_levels.append(
+                (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
+            )
+
+        log_state()  # Log Initial State
 
         iterations = 0
         while not self.evaluate_expression(self.confExString_TerminatingCondition):
@@ -766,14 +773,14 @@ class DRSModel:
             self.characterize_thresholds()
 
             # Log state right before time advances (creates the vertical "step" in the plot)
-            self.log_history()
+            log_state()
 
             self.advance_simulation()
             self.execute_assignments()
             self.update_rate_configuration()
 
             # Log state right after discrete events resolve
-            self.log_history()
+            log_state()
 
             iterations += 1
 
@@ -835,16 +842,6 @@ class DRSModel:
                 if total_time > 0
                 else 0.0
             ),
-        )
-
-    def log_history(self):
-        """
-        Appends current time, rate configuration, and ore levels to history logs.
-        """
-        self.history_time.append(self.TNOW)
-        self.history_rate_config.append(self.drs_RateConfigurationNumber)
-        self.history_ore_levels.append(
-            (self.OreStock_Level, self.Ore1Stock_Level, self.Ore2Stock_Level)
         )
 
     def plot_results(self):
