@@ -705,22 +705,24 @@ class DRSModel:
         Triggered by 'E' in assignment sequences for custom control logic.
         """
         if code_number == 1:
-            # Calculate stockpile imbalance (avoid division by zero)
-            total_stock = max(self.Ore1Stock_Level + self.Ore2Stock_Level, 1.0)
-            ore2_ratio = self.Ore2Stock_Level / total_stock
+            # Check if the ablation toggle is ON (defaults to False if not provided)
+            if getattr(self, "enable_feed_control", False):
+                # Calculate stockpile imbalance (avoid division by zero)
+                total_stock = max(self.Ore1Stock_Level + self.Ore2Stock_Level, 1.0)
+                ore2_ratio = self.Ore2Stock_Level / total_stock
 
-            # If Ore 2 makes up > 40% of the stock, we have too much!
-            if ore2_ratio > 0.40:
-                # Force the next parcel to have 10% less Ore 2
-                self.PercentageOfOre2InCurrentParcel = max(
-                    self.PercentageOfOre2InCurrentParcel - 10.0, 0.0
-                )
+                # If Ore 2 makes up > 40% of the stock, we have too much!
+                if ore2_ratio > 0.40:
+                    # Force the next parcel to have 2% less Ore 2
+                    self.PercentageOfOre2InCurrentParcel = max(
+                        self.PercentageOfOre2InCurrentParcel - 2.0, 0.0
+                    )
 
-            # If Ore 2 makes up < 20% of the stock, we need more!
-            elif ore2_ratio < 0.20:
-                self.PercentageOfOre2InCurrentParcel = min(
-                    self.PercentageOfOre2InCurrentParcel + 10.0, 100.0
-                )
+                # If Ore 2 makes up < 20% of the stock, we need more!
+                elif ore2_ratio < 0.20:
+                    self.PercentageOfOre2InCurrentParcel = min(
+                        self.PercentageOfOre2InCurrentParcel + 2.0, 100.0
+                    )
 
     def update_rate_configuration(self):
         """
@@ -892,6 +894,16 @@ class DRSModel:
         ax2.plot(times, total_ore, label="Total Ore Stockpile Level", color="black")
         ax2.plot(times, ore1, label="Ore 1 Stockpile Level", color="green")
         ax2.plot(times, ore2, label="Ore 2 Stockpile Level", color="pink")
+
+        target_kt = self.controlVariable_TargetOreStockLevel / 1000.0
+        upper_kt = getattr(self, "controlVariable_StockUpperLimit", 60000.0) / 1000.0
+        lower_kt = getattr(self, "controlVariable_StockLowerLimit", 60000.0) / 1000.0
+
+        ax2.axhline(target_kt, color="gray", linestyle="--", alpha=0.7, label="Target")
+        if upper_kt != target_kt:  # Only plot bounds if Hysteresis is active
+            ax2.axhspan(
+                lower_kt, upper_kt, color="yellow", alpha=0.2, label="Control Deadband"
+            )
 
         ax2.set_ylim(0, 80)
         ax2.set_ylabel("Ore Level (kt)")
