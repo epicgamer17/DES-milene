@@ -702,18 +702,25 @@ class DRSModel:
 
     def execute_external_code(self, code_number: int):
         """
-        Placeholder method for triggering custom VBA/Python logic.
+        Triggered by 'E' in assignment sequences for custom control logic.
         """
-        # Simple match or if/elif block for future custom logic
         if code_number == 1:
-            # Example logic for code 1
-            pass
-        elif code_number == 2:
-            # Example logic for code 2
-            pass
-        else:
-            # Default or unknown code logic
-            pass
+            # Calculate stockpile imbalance (avoid division by zero)
+            total_stock = max(self.Ore1Stock_Level + self.Ore2Stock_Level, 1.0)
+            ore2_ratio = self.Ore2Stock_Level / total_stock
+
+            # If Ore 2 makes up > 40% of the stock, we have too much!
+            if ore2_ratio > 0.40:
+                # Force the next parcel to have 10% less Ore 2
+                self.PercentageOfOre2InCurrentParcel = max(
+                    self.PercentageOfOre2InCurrentParcel - 10.0, 0.0
+                )
+
+            # If Ore 2 makes up < 20% of the stock, we need more!
+            elif ore2_ratio < 0.20:
+                self.PercentageOfOre2InCurrentParcel = min(
+                    self.PercentageOfOre2InCurrentParcel + 10.0, 100.0
+                )
 
     def update_rate_configuration(self):
         """
